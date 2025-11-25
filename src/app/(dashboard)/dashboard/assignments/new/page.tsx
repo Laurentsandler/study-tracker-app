@@ -17,7 +17,15 @@ export default function NewAssignmentPage() {
   const [aiText, setAiText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<CreateAssignmentInput>();
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<CreateAssignmentInput>({
+    defaultValues: {
+      priority: 'medium',
+      estimated_duration: 60,
+    }
+  });
+
+  // Watch form values to show them in the UI
+  const watchedValues = watch();
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -43,17 +51,31 @@ export default function NewAssignmentPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { error: insertError } = await supabase
+      // Clean up the data before insert
+      const insertData = {
+        title: data.title,
+        description: data.description || null,
+        course_id: data.course_id || null,
+        due_date: data.due_date || null,
+        priority: data.priority || 'medium',
+        estimated_duration: data.estimated_duration || 60,
+        user_id: user.id,
+        status: 'pending',
+      };
+
+      console.log('Inserting assignment:', insertData); // Debug log
+
+      const { data: result, error: insertError } = await supabase
         .from('assignments')
-        .insert({
-          ...data,
-          user_id: user.id,
-          status: 'pending',
-        });
+        .insert(insertData)
+        .select();
+
+      console.log('Insert result:', result, 'Error:', insertError); // Debug log
 
       if (insertError) throw insertError;
       router.push('/dashboard/assignments');
     } catch (err) {
+      console.error('Assignment creation error:', err); // Debug log
       setError(err instanceof Error ? err.message : 'Failed to create assignment');
     } finally {
       setLoading(false);
@@ -75,12 +97,18 @@ export default function NewAssignmentPage() {
       if (!response.ok) throw new Error('Failed to parse text');
 
       const parsed = await response.json();
-      setValue('title', parsed.title);
-      setValue('description', parsed.description);
-      if (parsed.due_date) setValue('due_date', parsed.due_date.split('T')[0]);
-      setValue('priority', parsed.priority);
-      setValue('estimated_duration', parsed.estimated_duration);
+      console.log('AI Parsed:', parsed); // Debug log
+      
+      setValue('title', parsed.title || '', { shouldValidate: true, shouldDirty: true });
+      setValue('description', parsed.description || '', { shouldValidate: true, shouldDirty: true });
+      if (parsed.due_date) {
+        const dateStr = parsed.due_date.split('T')[0];
+        setValue('due_date', dateStr, { shouldValidate: true, shouldDirty: true });
+      }
+      setValue('priority', parsed.priority || 'medium', { shouldValidate: true, shouldDirty: true });
+      setValue('estimated_duration', parsed.estimated_duration || 60, { shouldValidate: true, shouldDirty: true });
       setShowAiInput(false);
+      setAiText(''); // Clear the AI input
     } catch (err) {
       setError('Failed to parse text with AI. Please try again.');
     } finally {

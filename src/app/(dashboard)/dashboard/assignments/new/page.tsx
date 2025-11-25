@@ -200,7 +200,7 @@ export default function NewAssignmentPage() {
             type="text"
             id="title"
             placeholder="e.g., Chapter 5 Homework"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
           />
           {errors.title && (
             <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
@@ -217,7 +217,7 @@ export default function NewAssignmentPage() {
             id="description"
             rows={3}
             placeholder="Add details about this assignment..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none text-gray-900 bg-white"
           />
         </div>
 
@@ -229,7 +229,7 @@ export default function NewAssignmentPage() {
           <select
             {...register('course_id')}
             id="course_id"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
           >
             <option value="">Select a course</option>
             {courses.map((course) => (
@@ -250,7 +250,7 @@ export default function NewAssignmentPage() {
               {...register('due_date')}
               type="date"
               id="due_date"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
             />
           </div>
 
@@ -261,8 +261,7 @@ export default function NewAssignmentPage() {
             <select
               {...register('priority')}
               id="priority"
-              defaultValue="medium"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
@@ -280,9 +279,8 @@ export default function NewAssignmentPage() {
             {...register('estimated_duration', { valueAsNumber: true })}
             type="number"
             id="estimated_duration"
-            defaultValue={60}
             min={1}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
           />
         </div>
 

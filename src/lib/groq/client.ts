@@ -170,7 +170,10 @@ export async function generateFlashcards(content: string): Promise<{
   return parseJsonResponse(response);
 }
 
-export async function parseAssignmentText(rawText: string): Promise<{
+export async function parseAssignmentText(
+  rawText: string,
+  source?: { type: 'file' | 'text'; fileName?: string; fileType?: string }
+): Promise<{
   title: string;
   description: string;
   due_date: string | null;
@@ -183,30 +186,53 @@ export async function parseAssignmentText(rawText: string): Promise<{
   const currentMonth = currentDate.getMonth() + 1;
   const currentDay = currentDate.getDate();
   
+  // Build context about the source
+  let sourceContext = '';
+  if (source?.type === 'file' && source.fileName) {
+    const fileTypeDesc = source.fileType?.includes('pdf') ? 'PDF document' :
+                         source.fileType?.includes('word') || source.fileName.endsWith('.docx') ? 'Word document' :
+                         source.fileName.endsWith('.txt') ? 'text file' :
+                         source.fileName.endsWith('.md') ? 'Markdown file' : 'document';
+    sourceContext = `The user has uploaded a ${fileTypeDesc} named "${source.fileName}". The following text was extracted from this document. `;
+  } else if (source?.type === 'text') {
+    sourceContext = 'The user has manually entered or pasted the following text about an assignment. ';
+  }
+  
   const completion = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [
       {
         role: 'system',
-        content: `You are a helpful assistant that parses assignment information from raw text.
-        Today's date is ${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}.
-        The current year is ${currentYear}.
-        
-        Extract and return a JSON object with:
-        - title: A concise title for the assignment
-        - description: A detailed description
-        - due_date: ISO date string (YYYY-MM-DD format) if a due date is mentioned. IMPORTANT: If no year is specified, use ${currentYear}. If the date mentioned has already passed this year, use ${currentYear + 1}. Return null if no date mentioned.
-        - priority: "low", "medium", or "high" based on urgency/importance mentioned
-        - estimated_duration: Estimated time to complete in minutes (default 60)
-        Only return valid JSON, no markdown.`,
+        content: `You are an intelligent assistant that extracts assignment details from text provided by students.
+
+Today's date: ${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}
+Current year: ${currentYear}
+
+Your task: Parse the provided text and extract assignment information into a structured format.
+
+IMPORTANT GUIDELINES:
+1. TITLE: Create a clear, concise title (e.g., "Chapter 5 Math Homework", "History Essay on WWII"). If the text is from a syllabus or course document, identify the specific assignment.
+2. DESCRIPTION: Include all relevant details like instructions, requirements, topics covered, page numbers, questions to complete, etc.
+3. DUE DATE: 
+   - Parse any mentioned dates into YYYY-MM-DD format
+   - If no year specified, use ${currentYear}
+   - If that date has passed, use ${currentYear + 1}
+   - Return null if no due date is found
+4. PRIORITY: Determine based on:
+   - "high": urgent, important, exam, midterm, final, major project, worth high percentage
+   - "medium": regular homework, quizzes, standard assignments
+   - "low": optional, extra credit, practice, not graded
+5. ESTIMATED DURATION: Estimate completion time in minutes based on assignment type and scope (default: 60)
+
+Return ONLY a valid JSON object with these fields: title, description, due_date, priority, estimated_duration`,
       },
       {
         role: 'user',
-        content: rawText,
+        content: `${sourceContext}Please extract the assignment details from this content:\n\n${rawText}`,
       },
     ],
     temperature: 0.2,
-    max_tokens: 1000,
+    max_tokens: 1500,
   });
 
   const response = completion.choices[0]?.message?.content || '{}';

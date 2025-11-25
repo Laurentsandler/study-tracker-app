@@ -3,7 +3,7 @@ import { parseAssignmentText } from '@/lib/groq/client';
 
 export async function POST(request: NextRequest) {
   try {
-    const { text } = await request.json();
+    const { text, source } = await request.json();
 
     if (!text || typeof text !== 'string') {
       return NextResponse.json(
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const parsed = await parseAssignmentText(text);
+    const parsed = await parseAssignmentText(text, source);
     return NextResponse.json(parsed);
   } catch (error) {
     console.error('Error parsing assignment:', error);

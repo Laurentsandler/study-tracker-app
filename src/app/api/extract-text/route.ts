@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { extractText } from 'unpdf';
 
-// Extract text from PDF using pdf-parse
+// Extract text from PDF using unpdf
 async function extractPdfText(buffer: Buffer): Promise<string> {
-  // Dynamic import to avoid build issues - use require for CommonJS module
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const pdfParse = require('pdf-parse');
-  const data = await pdfParse(buffer);
-  return data.text;
+  const { text } = await extractText(buffer);
+  // text is an array of strings (one per page), join them
+  return Array.isArray(text) ? text.join('\n') : String(text);
 }
 
 // Extract text from plain text files

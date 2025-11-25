@@ -16,7 +16,7 @@ export async function generateStudyNotes(content: string): Promise<{
 }> {
   const groq = getGroqClient();
   const completion = await groq.chat.completions.create({
-    model: 'llama-3.1-70b-versatile',
+    model: 'llama-3.3-70b-versatile',
     messages: [
       {
         role: 'system',
@@ -46,7 +46,7 @@ export async function generateStudyGuide(content: string): Promise<{
 }> {
   const groq = getGroqClient();
   const completion = await groq.chat.completions.create({
-    model: 'llama-3.1-70b-versatile',
+    model: 'llama-3.3-70b-versatile',
     messages: [
       {
         role: 'system',
@@ -81,7 +81,7 @@ export async function generatePracticeTest(content: string): Promise<{
 }> {
   const groq = getGroqClient();
   const completion = await groq.chat.completions.create({
-    model: 'llama-3.1-70b-versatile',
+    model: 'llama-3.3-70b-versatile',
     messages: [
       {
         role: 'system',
@@ -114,7 +114,7 @@ export async function generateFlashcards(content: string): Promise<{
 }> {
   const groq = getGroqClient();
   const completion = await groq.chat.completions.create({
-    model: 'llama-3.1-70b-versatile',
+    model: 'llama-3.3-70b-versatile',
     messages: [
       {
         role: 'system',
@@ -148,7 +148,7 @@ export async function parseAssignmentText(rawText: string): Promise<{
 }> {
   const groq = getGroqClient();
   const completion = await groq.chat.completions.create({
-    model: 'llama-3.1-70b-versatile',
+    model: 'llama-3.3-70b-versatile',
     messages: [
       {
         role: 'system',
@@ -179,7 +179,7 @@ export async function transcribeWithGroq(audioBase64: string): Promise<string> {
   // Note: Groq's Whisper API requires audio file, not base64
   // This is a placeholder - you'll need to handle audio file conversion
   const completion = await groq.chat.completions.create({
-    model: 'llama-3.1-70b-versatile',
+    model: 'llama-3.3-70b-versatile',
     messages: [
       {
         role: 'system',

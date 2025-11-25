@@ -1,21 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Wand2, Mic, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Wand2, Mic, AlertCircle, Upload, FileText, X, File } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase/client';
 import { CreateAssignmentInput, Course } from '@/types';
 
 export default function NewAssignmentPage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAiInput, setShowAiInput] = useState(false);
   const [aiText, setAiText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [extractingText, setExtractingText] = useState(false);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<CreateAssignmentInput>({
     defaultValues: {
@@ -109,11 +112,85 @@ export default function NewAssignmentPage() {
       setValue('estimated_duration', parsed.estimated_duration || 60, { shouldValidate: true, shouldDirty: true });
       setShowAiInput(false);
       setAiText(''); // Clear the AI input
+      setUploadedFile(null); // Clear uploaded file
     } catch (err) {
       setError('Failed to parse text with AI. Please try again.');
     } finally {
       setAiLoading(false);
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('File size must be less than 10MB');
+      return;
+    }
+
+    // Check file type
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+      'text/markdown',
+    ];
+    const allowedExtensions = ['.pdf', '.docx', '.txt', '.md', '.markdown'];
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+      setError('Please upload a PDF, DOCX, TXT, or Markdown file');
+      return;
+    }
+
+    setUploadedFile(file);
+    setExtractingText(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/extract-text', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to extract text');
+      }
+
+      const { text } = await response.json();
+      setAiText(text);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to extract text from file');
+      setUploadedFile(null);
+    } finally {
+      setExtractingText(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const removeUploadedFile = () => {
+    setUploadedFile(null);
+    setAiText('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const getFileIcon = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    if (ext === 'pdf') return '📄';
+    if (ext === 'docx' || ext === 'doc') return '📝';
+    if (ext === 'txt' || ext === 'md' || ext === 'markdown') return '📃';
+    return '📎';
   };
 
   return (
@@ -138,7 +215,7 @@ export default function NewAssignmentPage() {
             <Wand2 className="h-5 w-5 text-purple-600" />
             <div>
               <p className="font-medium text-gray-900">AI-Assisted Entry</p>
-              <p className="text-sm text-gray-500">Paste raw text and let AI fill in the details</p>
+              <p className="text-sm text-gray-500">Upload a document or paste text for AI parsing</p>
             </div>
           </div>
           <button
@@ -151,14 +228,84 @@ export default function NewAssignmentPage() {
         </div>
 
         {showAiInput && (
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-4">
+            {/* File Upload Area */}
+            <div className="relative">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,.txt,.md,.markdown"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+              />
+              
+              {!uploadedFile ? (
+                <label
+                  htmlFor="file-upload"
+                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer bg-white hover:bg-purple-50 transition-colors"
+                >
+                  {extractingText ? (
+                    <div className="flex flex-col items-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mb-2" />
+                      <span className="text-sm text-gray-500">Extracting text...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="h-8 w-8 text-purple-400 mb-2" />
+                      <p className="text-sm font-medium text-gray-700">Upload a document</p>
+                      <p className="text-xs text-gray-500 mt-1">PDF, DOCX, TXT, or Markdown (max 10MB)</p>
+                    </>
+                  )}
+                </label>
+              ) : (
+                <div className="flex items-center justify-between p-4 bg-white border border-purple-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{getFileIcon(uploadedFile.name)}</span>
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm">{uploadedFile.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {(uploadedFile.size / 1024).toFixed(1)} KB • Text extracted
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeUploadedFile}
+                    className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="px-3 bg-gradient-to-r from-purple-50 to-blue-50 text-sm text-gray-500">
+                  or paste text directly
+                </span>
+              </div>
+            </div>
+
+            {/* Text Input */}
             <textarea
               value={aiText}
               onChange={(e) => setAiText(e.target.value)}
               placeholder="Paste assignment details here... e.g., 'Math homework due Friday - Chapter 5 problems 1-20, worth 50 points, should take about 2 hours'"
               rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none resize-none text-gray-900 bg-white"
             />
+            
+            {aiText && (
+              <p className="text-xs text-gray-500">
+                {aiText.length.toLocaleString()} characters extracted
+              </p>
+            )}
+
             <button
               type="button"
               onClick={handleAiParse}

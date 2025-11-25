@@ -9,6 +9,37 @@ const getGroqClient = () => {
   return new Groq({ apiKey });
 };
 
+// Helper function to clean and parse JSON from AI response
+function parseJsonResponse<T>(response: string): T {
+  let cleaned = response.trim();
+  
+  // Remove markdown code blocks if present
+  if (cleaned.startsWith('```json')) {
+    cleaned = cleaned.slice(7);
+  } else if (cleaned.startsWith('```')) {
+    cleaned = cleaned.slice(3);
+  }
+  
+  if (cleaned.endsWith('```')) {
+    cleaned = cleaned.slice(0, -3);
+  }
+  
+  cleaned = cleaned.trim();
+  
+  // Try to find JSON object or array in the response
+  const jsonMatch = cleaned.match(/[\[{][\s\S]*[\]}]/);
+  if (jsonMatch) {
+    cleaned = jsonMatch[0];
+  }
+  
+  try {
+    return JSON.parse(cleaned);
+  } catch (error) {
+    console.error('Failed to parse JSON response:', cleaned);
+    throw new Error('Failed to parse AI response as JSON');
+  }
+}
+
 export async function generateStudyNotes(content: string): Promise<{
   summary: string;
   keyPoints: string[];
@@ -37,7 +68,7 @@ export async function generateStudyNotes(content: string): Promise<{
   });
 
   const response = completion.choices[0]?.message?.content || '{}';
-  return JSON.parse(response);
+  return parseJsonResponse(response);
 }
 
 export async function generateStudyGuide(content: string): Promise<{
@@ -66,7 +97,7 @@ export async function generateStudyGuide(content: string): Promise<{
   });
 
   const response = completion.choices[0]?.message?.content || '{}';
-  return JSON.parse(response);
+  return parseJsonResponse(response);
 }
 
 export async function generatePracticeTest(content: string): Promise<{
@@ -106,7 +137,7 @@ export async function generatePracticeTest(content: string): Promise<{
   });
 
   const response = completion.choices[0]?.message?.content || '{}';
-  return JSON.parse(response);
+  return parseJsonResponse(response);
 }
 
 export async function generateFlashcards(content: string): Promise<{
@@ -136,7 +167,7 @@ export async function generateFlashcards(content: string): Promise<{
   });
 
   const response = completion.choices[0]?.message?.content || '{}';
-  return JSON.parse(response);
+  return parseJsonResponse(response);
 }
 
 export async function parseAssignmentText(rawText: string): Promise<{
@@ -179,7 +210,7 @@ export async function parseAssignmentText(rawText: string): Promise<{
   });
 
   const response = completion.choices[0]?.message?.content || '{}';
-  return JSON.parse(response);
+  return parseJsonResponse(response);
 }
 
 export async function transcribeWithGroq(audioBase64: string): Promise<string> {

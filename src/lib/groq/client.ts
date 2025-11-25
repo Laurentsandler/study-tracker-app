@@ -147,16 +147,24 @@ export async function parseAssignmentText(rawText: string): Promise<{
   estimated_duration: number;
 }> {
   const groq = getGroqClient();
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1;
+  const currentDay = currentDate.getDate();
+  
   const completion = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [
       {
         role: 'system',
         content: `You are a helpful assistant that parses assignment information from raw text.
+        Today's date is ${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}.
+        The current year is ${currentYear}.
+        
         Extract and return a JSON object with:
         - title: A concise title for the assignment
         - description: A detailed description
-        - due_date: ISO date string if a due date is mentioned, null otherwise
+        - due_date: ISO date string (YYYY-MM-DD format) if a due date is mentioned. IMPORTANT: If no year is specified, use ${currentYear}. If the date mentioned has already passed this year, use ${currentYear + 1}. Return null if no date mentioned.
         - priority: "low", "medium", or "high" based on urgency/importance mentioned
         - estimated_duration: Estimated time to complete in minutes (default 60)
         Only return valid JSON, no markdown.`,

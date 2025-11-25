@@ -22,11 +22,22 @@ interface MaterialData {
 // Type guard helpers
 interface FlashcardData {
   flashcards?: { front: string; back: string }[];
-  cards?: { front: string; back: string }[];
+  cards?: { front: string; back: string; id?: string }[];
 }
 
 interface PracticeTestData {
-  questions?: { question: string; options?: string[]; answer: string; correctAnswer?: string }[];
+  questions?: { question: string; options?: string[]; answer?: string; correctAnswer?: string; explanation?: string }[];
+}
+
+interface NotesData {
+  summary?: string;
+  keyPoints?: string[];
+  importantTerms?: { term: string; definition: string }[];
+}
+
+interface StudyGuideData {
+  sections?: { title: string; content: string; keyTakeaways?: string[] }[];
+  reviewQuestions?: string[];
 }
 
 function isFlashcardContent(content: unknown): content is FlashcardData {
@@ -39,6 +50,18 @@ function isPracticeTestContent(content: unknown): content is PracticeTestData {
   if (typeof content !== 'object' || content === null) return false;
   const obj = content as Record<string, unknown>;
   return Array.isArray(obj.questions);
+}
+
+function isNotesContent(content: unknown): content is NotesData {
+  if (typeof content !== 'object' || content === null) return false;
+  const obj = content as Record<string, unknown>;
+  return typeof obj.summary === 'string' || Array.isArray(obj.keyPoints) || Array.isArray(obj.importantTerms);
+}
+
+function isStudyGuideContent(content: unknown): content is StudyGuideData {
+  if (typeof content !== 'object' || content === null) return false;
+  const obj = content as Record<string, unknown>;
+  return Array.isArray(obj.sections) || Array.isArray(obj.reviewQuestions);
 }
 
 export default function StudyMaterialPage() {
@@ -148,6 +171,17 @@ export default function StudyMaterialPage() {
 
   // Render content based on type
   const renderContent = () => {
+    // Notes
+    if (material.type === 'notes' && isNotesContent(displayContent)) {
+      return <NotesView content={displayContent} />;
+    }
+    
+    // Study Guide
+    if (material.type === 'study_guide' && isStudyGuideContent(displayContent)) {
+      return <StudyGuideView content={displayContent} />;
+    }
+    
+    // Flashcards
     if (material.type === 'flashcards' && isFlashcardContent(displayContent)) {
       const cards = displayContent.flashcards || displayContent.cards || [];
       if (cards.length > 0) {
@@ -155,17 +189,20 @@ export default function StudyMaterialPage() {
       }
     }
     
+    // Practice Test
     if (material.type === 'practice_test' && isPracticeTestContent(displayContent)) {
       const questions = (displayContent.questions || []).map(q => ({
         question: q.question,
         options: q.options,
-        answer: q.answer || q.correctAnswer || ''
+        answer: q.answer || q.correctAnswer || '',
+        explanation: q.explanation
       }));
       if (questions.length > 0) {
         return <PracticeTestView questions={questions} />;
       }
     }
     
+    // Fallback for structured JSON
     if (typeof displayContent === 'object' && displayContent !== null) {
       return (
         <div className="prose prose-gray max-w-none">
@@ -176,6 +213,7 @@ export default function StudyMaterialPage() {
       );
     }
     
+    // Plain text fallback
     return (
       <div className="prose prose-gray max-w-none">
         <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
@@ -315,8 +353,117 @@ function FlashcardView({ flashcards }: { flashcards: { front: string; back: stri
   );
 }
 
+// Notes View Component
+function NotesView({ content }: { content: NotesData }) {
+  return (
+    <div className="space-y-6">
+      {/* Summary */}
+      {content.summary && (
+        <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg">
+          <h3 className="text-sm font-semibold text-blue-800 uppercase tracking-wider mb-2">Summary</h3>
+          <p className="text-gray-700 leading-relaxed">{content.summary}</p>
+        </div>
+      )}
+
+      {/* Key Points */}
+      {content.keyPoints && content.keyPoints.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+            Key Points
+          </h3>
+          <ul className="space-y-2">
+            {content.keyPoints.map((point, index) => (
+              <li key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-sm font-medium">
+                  {index + 1}
+                </span>
+                <span className="text-gray-700">{point}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Important Terms */}
+      {content.importantTerms && content.importantTerms.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+            Important Terms
+          </h3>
+          <div className="grid gap-3">
+            {content.importantTerms.map((item, index) => (
+              <div key={index} className="p-4 bg-purple-50 border border-purple-100 rounded-lg">
+                <dt className="font-semibold text-purple-900 mb-1">{item.term}</dt>
+                <dd className="text-gray-700">{item.definition}</dd>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Study Guide View Component
+function StudyGuideView({ content }: { content: StudyGuideData }) {
+  return (
+    <div className="space-y-8">
+      {/* Sections */}
+      {content.sections && content.sections.length > 0 && (
+        <div className="space-y-6">
+          {content.sections.map((section, index) => (
+            <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-4 py-3 border-b border-gray-200">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <span className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm">
+                    {index + 1}
+                  </span>
+                  {section.title}
+                </h3>
+              </div>
+              <div className="p-4">
+                <p className="text-gray-700 leading-relaxed mb-4">{section.content}</p>
+                {section.keyTakeaways && section.keyTakeaways.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">Key Takeaways</h4>
+                    <ul className="space-y-1">
+                      {section.keyTakeaways.map((takeaway, i) => (
+                        <li key={i} className="flex items-start gap-2 text-gray-600">
+                          <span className="text-green-500 mt-1">✓</span>
+                          <span>{takeaway}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Review Questions */}
+      {content.reviewQuestions && content.reviewQuestions.length > 0 && (
+        <div className="bg-amber-50 border border-amber-100 rounded-lg p-4">
+          <h3 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
+            <HelpCircle className="h-5 w-5" />
+            Review Questions
+          </h3>
+          <ol className="space-y-2 list-decimal list-inside">
+            {content.reviewQuestions.map((question, index) => (
+              <li key={index} className="text-gray-700 pl-2">{question}</li>
+            ))}
+          </ol>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Practice Test View Component
-function PracticeTestView({ questions }: { questions: { question: string; options?: string[]; answer: string }[] }) {
+function PracticeTestView({ questions }: { questions: { question: string; options?: string[]; answer: string; explanation?: string }[] }) {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showResults, setShowResults] = useState(false);
 
@@ -363,9 +510,16 @@ function PracticeTestView({ questions }: { questions: { question: string; option
             />
           )}
           {showResults && (
-            <p className="mt-2 text-sm text-green-600">
-              Correct answer: {q.answer}
-            </p>
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-sm text-green-600 font-medium">
+                ✓ Correct answer: {q.answer}
+              </p>
+              {q.explanation && (
+                <p className="mt-1 text-sm text-gray-600">
+                  <span className="font-medium">Explanation:</span> {q.explanation}
+                </p>
+              )}
+            </div>
           )}
         </div>
       ))}
@@ -379,7 +533,7 @@ function PracticeTestView({ questions }: { questions: { question: string; option
         </button>
         {showResults && (
           <p className="text-lg font-medium text-gray-900">
-            Score: {score}/{questions.length}
+            Score: {score}/{questions.length} ({Math.round((score / questions.length) * 100)}%)
           </p>
         )}
       </div>

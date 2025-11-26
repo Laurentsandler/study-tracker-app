@@ -18,6 +18,7 @@ import {
   Timer,
   ChevronUp,
   ChevronDown,
+  Zap,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { Assignment, PlannedTask } from '@/types';
@@ -33,6 +34,19 @@ interface ScheduleSuggestion {
   reason: string;
   assignment?: Assignment;
 }
+
+// Neo-Brutalism priority styles
+const PRIORITY_STYLES = {
+  low: 'bg-emerald-300',
+  medium: 'bg-amber-300',
+  high: 'bg-rose-300',
+};
+
+const STATUS_STYLES = {
+  pending: 'bg-gray-200',
+  in_progress: 'bg-sky-300',
+  completed: 'bg-emerald-300',
+};
 
 export default function DashboardPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -205,7 +219,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+        <div className="w-12 h-12 border-4 border-black border-t-yellow-300 animate-spin"></div>
       </div>
     );
   }
@@ -213,27 +227,27 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500">Welcome back! Here&apos;s your study overview.</p>
+          <h1 className="text-3xl font-black text-black">Dashboard</h1>
+          <p className="text-gray-600 font-medium mt-1">Welcome back! Here&apos;s your study overview.</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowTimer(!showTimer)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+            className={`flex items-center gap-2 px-4 py-3 font-bold border-3 border-black transition-all ${
               showTimer 
-                ? 'bg-red-50 border-red-200 text-red-700' 
-                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                ? 'bg-rose-300 shadow-[4px_4px_0_0_#000]' 
+                : 'bg-white shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000]'
             }`}
           >
             <Timer className="h-5 w-5" />
-            <span className="hidden sm:inline">Pomodoro Timer</span>
+            <span className="hidden sm:inline">Pomodoro</span>
             {showTimer ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>
           <Link
             href="/dashboard/assignments/new"
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-3 bg-yellow-300 font-bold border-3 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] transition-all"
           >
             <Plus className="h-5 w-5" />
             <span>New Assignment</span>
@@ -253,48 +267,48 @@ export default function DashboardPage() {
             />
           </div>
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl border border-gray-200 h-full">
-              <div className="p-4 border-b border-gray-200">
-                <h3 className="font-medium text-gray-900">Focus on Assignment</h3>
-                <p className="text-sm text-gray-500">Select an assignment to track your study time</p>
+            <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000] h-full">
+              <div className="p-4 border-b-3 border-black bg-cyan-100">
+                <h3 className="font-bold text-black">Focus on Assignment</h3>
+                <p className="text-sm text-gray-700">Select an assignment to track your study time</p>
               </div>
               <div className="p-4 max-h-64 overflow-y-auto">
                 {assignments.length === 0 ? (
-                  <p className="text-center text-gray-500 py-4">No active assignments</p>
+                  <p className="text-center text-gray-600 py-4 font-medium">No active assignments</p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <button
                       onClick={() => setSelectedAssignment(null)}
-                      className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                      className={`w-full text-left p-4 border-3 border-black transition-all ${
                         !selectedAssignment 
-                          ? 'border-primary-500 bg-primary-50' 
-                          : 'border-gray-200 hover:bg-gray-50'
+                          ? 'bg-yellow-200 shadow-[4px_4px_0_0_#000]' 
+                          : 'bg-white hover:bg-gray-50 shadow-[2px_2px_0_0_#000]'
                       }`}
                     >
-                      <span className="font-medium text-gray-900">General Study</span>
-                      <p className="text-sm text-gray-500">Not tracking a specific assignment</p>
+                      <span className="font-bold text-black">General Study</span>
+                      <p className="text-sm text-gray-600">Not tracking a specific assignment</p>
                     </button>
                     {assignments.map(assignment => (
                       <button
                         key={assignment.id}
                         onClick={() => setSelectedAssignment(assignment)}
-                        className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                        className={`w-full text-left p-4 border-3 border-black transition-all ${
                           selectedAssignment?.id === assignment.id 
-                            ? 'border-primary-500 bg-primary-50' 
-                            : 'border-gray-200 hover:bg-gray-50'
+                            ? 'bg-yellow-200 shadow-[4px_4px_0_0_#000]' 
+                            : 'bg-white hover:bg-gray-50 shadow-[2px_2px_0_0_#000]'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-900">{assignment.title}</span>
-                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getPriorityColor(assignment.priority)}`}>
-                            {assignment.priority}
+                          <span className="font-bold text-black">{assignment.title}</span>
+                          <span className={`px-2 py-1 text-xs font-bold border-2 border-black ${PRIORITY_STYLES[assignment.priority as keyof typeof PRIORITY_STYLES] || 'bg-gray-200'}`}>
+                            {assignment.priority.toUpperCase()}
                           </span>
                         </div>
                         {assignment.course && (
-                          <p className="text-sm text-gray-500">{assignment.course.name}</p>
+                          <p className="text-sm text-gray-600 font-medium">{assignment.course.name}</p>
                         )}
                         {assignment.due_date && (
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-gray-500 mt-1 font-medium">
                             Due: {formatDate(assignment.due_date)}
                           </p>
                         )}
@@ -310,22 +324,22 @@ export default function DashboardPage() {
 
       {/* AI Schedule Suggestions Banner */}
       {!hasSchedule && assignments.length > 0 && (
-        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-6 text-white">
-          <div className="flex items-start justify-between">
+        <div className="bg-violet-300 border-3 border-black shadow-[6px_6px_0_0_#000] p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-white/20 rounded-lg">
+              <div className="p-3 bg-white border-3 border-black">
                 <Sparkles className="h-6 w-6" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold">Set Up Smart Scheduling</h2>
-                <p className="text-purple-100 mt-1">
+                <h2 className="text-xl font-black text-black">Set Up Smart Scheduling</h2>
+                <p className="text-gray-800 font-medium mt-1">
                   Tell us your weekly schedule and let AI suggest the best times to work on your assignments.
                 </p>
               </div>
             </div>
             <Link
               href="/dashboard/schedule"
-              className="px-4 py-2 bg-white text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-colors flex items-center gap-2"
+              className="px-4 py-3 bg-yellow-300 font-bold border-3 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] transition-all flex items-center gap-2 shrink-0"
             >
               Set Up Schedule
               <ArrowRight className="h-4 w-4" />
@@ -336,52 +350,54 @@ export default function DashboardPage() {
 
       {/* AI Suggestions Card */}
       {hasSchedule && (suggestions.length > 0 || assignments.length > 0) && (
-        <div className="bg-white rounded-xl border border-purple-200 overflow-hidden">
-          <div className="px-6 py-4 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-200 flex items-center justify-between">
+        <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000] overflow-hidden">
+          <div className="px-6 py-4 bg-violet-200 border-b-3 border-black flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-purple-600" />
-              <h2 className="font-semibold text-gray-900">AI Study Suggestions</h2>
+              <Sparkles className="h-5 w-5" />
+              <h2 className="font-black text-black">AI Study Suggestions</h2>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {suggestions.length === 0 && assignments.length > 0 && (
                 <button
                   onClick={generateSchedule}
                   disabled={generating}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 bg-yellow-300 font-bold border-3 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {generating ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Lightbulb className="h-4 w-4" />
+                    <Zap className="h-4 w-4" />
                   )}
                   {generating ? 'Generating...' : 'Get Suggestions'}
                 </button>
               )}
               <Link
                 href="/dashboard/schedule?tab=suggestions"
-                className="text-sm text-purple-600 hover:text-purple-700"
+                className="font-bold text-black hover:underline underline-offset-4"
               >
-                View all
+                View all →
               </Link>
             </div>
           </div>
           
           {suggestions.length === 0 ? (
-            <div className="p-6 text-center">
-              <Lightbulb className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 border-3 border-black flex items-center justify-center">
+                <Lightbulb className="h-8 w-8" />
+              </div>
+              <p className="text-gray-700 font-medium">
                 No pending suggestions. Click &ldquo;Get Suggestions&rdquo; to have AI plan your study time.
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y-3 divide-black">
               {suggestions.map(suggestion => (
-                <div key={suggestion.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                <div key={suggestion.id} className="p-5 flex items-center justify-between hover:bg-gray-50">
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">
+                    <p className="font-bold text-black text-lg">
                       {suggestion.assignment?.title || 'Study Session'}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-gray-700 font-medium">
                       {new Date(suggestion.suggested_date).toLocaleDateString('en-US', {
                         weekday: 'short',
                         month: 'short',
@@ -389,23 +405,23 @@ export default function DashboardPage() {
                       })} • {formatTime(suggestion.suggested_start)} - {formatTime(suggestion.suggested_end)}
                     </p>
                     {suggestion.reason && (
-                      <p className="text-xs text-purple-600 mt-1">{suggestion.reason}</p>
+                      <p className="text-sm text-violet-700 font-medium mt-1">{suggestion.reason}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
+                  <div className="flex items-center gap-3 ml-4">
                     <button
                       onClick={() => handleSuggestionAction(suggestion.id, 'accept')}
-                      className="p-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
+                      className="p-2 bg-emerald-300 border-3 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all"
                       title="Accept"
                     >
-                      <Check className="h-4 w-4" />
+                      <Check className="h-5 w-5" />
                     </button>
                     <button
                       onClick={() => handleSuggestionAction(suggestion.id, 'dismiss')}
-                      className="p-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200"
+                      className="p-2 bg-gray-200 border-3 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all"
                       title="Dismiss"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-5 w-5" />
                     </button>
                   </div>
                 </div>
@@ -417,75 +433,77 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <div className="bg-cyan-200 p-5 border-3 border-black shadow-[4px_4px_0_0_#000]">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <ClipboardList className="h-5 w-5 text-blue-600" />
+            <div className="p-3 bg-white border-3 border-black">
+              <ClipboardList className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              <p className="text-sm text-gray-500">Active Assignments</p>
+              <p className="text-3xl font-black text-black">{stats.total}</p>
+              <p className="text-sm font-bold text-gray-700">Active</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <div className="bg-rose-300 p-5 border-3 border-black shadow-[4px_4px_0_0_#000]">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+            <div className="p-3 bg-white border-3 border-black">
+              <AlertTriangle className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.urgent}</p>
-              <p className="text-sm text-gray-500">Due Soon</p>
+              <p className="text-3xl font-black text-black">{stats.urgent}</p>
+              <p className="text-sm font-bold text-gray-700">Due Soon</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <div className="bg-amber-200 p-5 border-3 border-black shadow-[4px_4px_0_0_#000]">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Clock className="h-5 w-5 text-yellow-600" />
+            <div className="p-3 bg-white border-3 border-black">
+              <Clock className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.inProgress}</p>
-              <p className="text-sm text-gray-500">In Progress</p>
+              <p className="text-3xl font-black text-black">{stats.inProgress}</p>
+              <p className="text-sm font-bold text-gray-700">In Progress</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <div className="bg-emerald-300 p-5 border-3 border-black shadow-[4px_4px_0_0_#000]">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Calendar className="h-5 w-5 text-green-600" />
+            <div className="p-3 bg-white border-3 border-black">
+              <Calendar className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.todayTasks}</p>
-              <p className="text-sm text-gray-500">Today&apos;s Tasks</p>
+              <p className="text-3xl font-black text-black">{stats.todayTasks}</p>
+              <p className="text-sm font-bold text-gray-700">Today</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className="grid lg:grid-cols-2 gap-6">
         {/* Upcoming Assignments */}
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Upcoming Assignments</h2>
+        <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000]">
+          <div className="p-5 border-b-3 border-black bg-yellow-200 flex items-center justify-between">
+            <h2 className="text-lg font-black text-black">Upcoming Assignments</h2>
             <Link
               href="/dashboard/assignments"
-              className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+              className="font-bold text-black hover:underline underline-offset-4 flex items-center gap-1"
             >
               View all <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y-3 divide-black">
             {assignments.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">
-                <ClipboardList className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p>No assignments yet</p>
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 border-3 border-black flex items-center justify-center">
+                  <ClipboardList className="h-8 w-8" />
+                </div>
+                <p className="font-medium text-gray-700">No assignments yet</p>
                 <Link
                   href="/dashboard/assignments/new"
-                  className="text-primary-600 hover:text-primary-700 text-sm"
+                  className="inline-block mt-3 px-4 py-2 bg-yellow-300 font-bold border-3 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all"
                 >
                   Add your first assignment
                 </Link>
@@ -497,28 +515,28 @@ export default function DashboardPage() {
                   href={`/dashboard/assignments/${assignment.id}`}
                   className="block p-4 hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{assignment.title}</h3>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-black truncate">{assignment.title}</h3>
                       {assignment.course && (
-                        <p className="text-sm text-gray-500">{assignment.course.name}</p>
+                        <p className="text-sm text-gray-600 font-medium truncate">{assignment.course.name}</p>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(assignment.priority)}`}>
-                        {assignment.priority}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`px-2 py-1 text-xs font-bold border-2 border-black ${PRIORITY_STYLES[assignment.priority as keyof typeof PRIORITY_STYLES] || 'bg-gray-200'}`}>
+                        {assignment.priority.toUpperCase()}
                       </span>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(assignment.status)}`}>
-                        {assignment.status.replace('_', ' ')}
+                      <span className={`px-2 py-1 text-xs font-bold border-2 border-black ${STATUS_STYLES[assignment.status as keyof typeof STATUS_STYLES] || 'bg-gray-200'}`}>
+                        {assignment.status.replace('_', ' ').toUpperCase()}
                       </span>
                     </div>
                   </div>
                   {assignment.due_date && (
-                    <p className="text-sm text-gray-500 mt-2">
+                    <p className="text-sm text-gray-600 mt-2 font-medium">
                       Due: {formatDate(assignment.due_date)}
                       {getDaysUntilDue(assignment.due_date) <= 2 && (
-                        <span className="ml-2 text-red-600 font-medium">
-                          ({getDaysUntilDue(assignment.due_date)} days left)
+                        <span className="ml-2 text-rose-600 font-bold">
+                          ({getDaysUntilDue(assignment.due_date)} days left!)
                         </span>
                       )}
                     </p>
@@ -530,24 +548,26 @@ export default function DashboardPage() {
         </div>
 
         {/* Today's Schedule */}
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Today&apos;s Schedule</h2>
+        <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000]">
+          <div className="p-5 border-b-3 border-black bg-cyan-200 flex items-center justify-between">
+            <h2 className="text-lg font-black text-black">Today&apos;s Schedule</h2>
             <Link
               href="/dashboard/schedule"
-              className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+              className="font-bold text-black hover:underline underline-offset-4 flex items-center gap-1"
             >
               View all <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y-3 divide-black">
             {todaysTasks.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">
-                <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p>No tasks scheduled for today</p>
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 border-3 border-black flex items-center justify-center">
+                  <Calendar className="h-8 w-8" />
+                </div>
+                <p className="font-medium text-gray-700">No tasks scheduled for today</p>
                 <Link
                   href="/dashboard/schedule"
-                  className="text-primary-600 hover:text-primary-700 text-sm"
+                  className="inline-block mt-3 px-4 py-2 bg-cyan-300 font-bold border-3 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all"
                 >
                   Plan your day
                 </Link>
@@ -556,28 +576,28 @@ export default function DashboardPage() {
               todaysTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-50"
+                  className="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-50 transition-colors"
                   onClick={() => toggleTaskComplete(task)}
                 >
-                  <div className={`p-2 rounded-lg ${task.completed ? 'bg-green-100' : task.ai_generated ? 'bg-purple-100' : 'bg-gray-100'}`}>
+                  <div className={`p-3 border-3 border-black ${task.completed ? 'bg-emerald-300' : task.ai_generated ? 'bg-violet-200' : 'bg-gray-100'}`}>
                     {task.completed ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <CheckCircle2 className="h-5 w-5" />
                     ) : task.ai_generated ? (
-                      <Sparkles className="h-5 w-5 text-purple-600" />
+                      <Sparkles className="h-5 w-5" />
                     ) : (
-                      <Clock className="h-5 w-5 text-gray-600" />
+                      <Clock className="h-5 w-5" />
                     )}
                   </div>
-                  <div className="flex-1">
-                    <h3 className={`font-medium ${task.completed ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`font-bold truncate ${task.completed ? 'text-gray-400 line-through' : 'text-black'}`}>
                       {task.assignment?.title || task.title || 'Untitled Task'}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-600 font-medium">
                       {formatTime(task.scheduled_start)} - {formatTime(task.scheduled_end)}
                     </p>
                   </div>
                   {task.ai_generated && !task.completed && (
-                    <span className="text-xs text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                    <span className="px-2 py-1 text-xs font-bold bg-violet-200 border-2 border-black shrink-0">
                       AI
                     </span>
                   )}

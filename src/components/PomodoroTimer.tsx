@@ -224,11 +224,11 @@ export default function PomodoroTimer({
     setIsRunning(false);
   };
 
-  // Mode config
+  // Mode config - Neo-Brutalism colors
   const modeConfig = {
-    work: { color: 'text-red-500', bgColor: 'bg-red-500', lightBg: 'bg-red-50', borderColor: 'border-red-200', label: 'Focus' },
-    shortBreak: { color: 'text-green-500', bgColor: 'bg-green-500', lightBg: 'bg-green-50', borderColor: 'border-green-200', label: 'Break' },
-    longBreak: { color: 'text-blue-500', bgColor: 'bg-blue-500', lightBg: 'bg-blue-50', borderColor: 'border-blue-200', label: 'Long Break' },
+    work: { color: 'text-rose-700', bgColor: 'bg-rose-400', lightBg: 'bg-rose-100', borderColor: 'border-black', label: 'FOCUS' },
+    shortBreak: { color: 'text-emerald-700', bgColor: 'bg-emerald-400', lightBg: 'bg-emerald-100', borderColor: 'border-black', label: 'BREAK' },
+    longBreak: { color: 'text-cyan-700', bgColor: 'bg-cyan-400', lightBg: 'bg-cyan-100', borderColor: 'border-black', label: 'LONG BREAK' },
   };
 
   const currentConfig = modeConfig[mode];
@@ -236,26 +236,26 @@ export default function PomodoroTimer({
   // Compact view for dashboard sidebar
   if (compact) {
     return (
-      <div className={`flex items-center gap-3 p-3 rounded-lg border ${currentConfig.lightBg} ${currentConfig.borderColor}`}>
-        <div className={`w-14 h-14 rounded-full flex items-center justify-center ${currentConfig.bgColor} text-white font-bold text-lg`}>
+      <div className={`flex items-center gap-3 p-4 border-3 border-black shadow-[4px_4px_0_0_#000] ${currentConfig.lightBg}`}>
+        <div className={`w-16 h-16 flex items-center justify-center ${currentConfig.bgColor} border-3 border-black font-black text-lg`}>
           {formatTime(timeLeft)}
         </div>
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium ${currentConfig.color}`}>{currentConfig.label}</p>
+          <p className={`text-sm font-black ${currentConfig.color}`}>{currentConfig.label}</p>
           {assignmentTitle && (
-            <p className="text-xs text-gray-600 truncate">{assignmentTitle}</p>
+            <p className="text-xs text-gray-700 font-medium truncate">{assignmentTitle}</p>
           )}
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-2">
           <button
             onClick={() => setIsRunning(!isRunning)}
-            className={`p-2 rounded-full ${currentConfig.bgColor} text-white hover:opacity-90`}
+            className={`p-2 ${currentConfig.bgColor} border-3 border-black shadow-[2px_2px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_#000] transition-all`}
           >
             {isRunning ? <Pause size={16} /> : <Play size={16} />}
           </button>
           <button
             onClick={resetTimer}
-            className="p-2 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300"
+            className="p-2 bg-gray-200 border-3 border-black shadow-[2px_2px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_#000] transition-all"
           >
             <RotateCcw size={16} />
           </button>
@@ -265,20 +265,20 @@ export default function PomodoroTimer({
   }
 
   return (
-    <div className={`rounded-xl border shadow-sm overflow-hidden ${currentConfig.lightBg} ${currentConfig.borderColor}`}>
+    <div className={`border-3 border-black shadow-[4px_4px_0_0_#000] overflow-hidden ${currentConfig.lightBg}`}>
       {/* Header */}
-      <div className={`px-4 py-2 ${currentConfig.bgColor} text-white flex items-center justify-between`}>
-        <span className="font-medium text-sm">{currentConfig.label}</span>
-        <div className="flex items-center gap-1">
+      <div className={`px-4 py-3 ${currentConfig.bgColor} border-b-3 border-black flex items-center justify-between`}>
+        <span className="font-black text-sm tracking-wide">{currentConfig.label}</span>
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setSettings(s => ({ ...s, soundEnabled: !s.soundEnabled }))}
-            className="p-1 rounded hover:bg-white/20"
+            className="p-1.5 border-2 border-black bg-white hover:bg-gray-100 transition-colors"
           >
             {settings.soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
           </button>
           <button
             onClick={() => { setTempSettings(settings); setShowSettings(!showSettings); }}
-            className="p-1 rounded hover:bg-white/20"
+            className="p-1.5 border-2 border-black bg-white hover:bg-gray-100 transition-colors"
           >
             <Settings size={14} />
           </button>
@@ -287,77 +287,77 @@ export default function PomodoroTimer({
 
       {/* Settings */}
       {showSettings && (
-        <div className="p-3 bg-white border-b text-sm">
-          <div className="grid grid-cols-3 gap-2 mb-2">
+        <div className="p-4 bg-white border-b-3 border-black">
+          <div className="grid grid-cols-3 gap-3 mb-4">
             <div>
-              <label className="text-xs text-gray-500">Focus</label>
+              <label className="text-xs font-bold text-gray-700 block mb-1">Focus</label>
               <input type="number" value={tempSettings.workDuration}
                 onChange={(e) => setTempSettings(s => ({ ...s, workDuration: parseInt(e.target.value) || 25 }))}
-                className="w-full px-2 py-1 border rounded text-center" min={1} max={90} />
+                className="w-full px-2 py-2 border-3 border-black text-center font-bold focus:outline-none focus:ring-2 focus:ring-yellow-300" min={1} max={90} />
             </div>
             <div>
-              <label className="text-xs text-gray-500">Break</label>
+              <label className="text-xs font-bold text-gray-700 block mb-1">Break</label>
               <input type="number" value={tempSettings.shortBreakDuration}
                 onChange={(e) => setTempSettings(s => ({ ...s, shortBreakDuration: parseInt(e.target.value) || 5 }))}
-                className="w-full px-2 py-1 border rounded text-center" min={1} max={30} />
+                className="w-full px-2 py-2 border-3 border-black text-center font-bold focus:outline-none focus:ring-2 focus:ring-yellow-300" min={1} max={30} />
             </div>
             <div>
-              <label className="text-xs text-gray-500">Long</label>
+              <label className="text-xs font-bold text-gray-700 block mb-1">Long</label>
               <input type="number" value={tempSettings.longBreakDuration}
                 onChange={(e) => setTempSettings(s => ({ ...s, longBreakDuration: parseInt(e.target.value) || 15 }))}
-                className="w-full px-2 py-1 border rounded text-center" min={1} max={60} />
+                className="w-full px-2 py-2 border-3 border-black text-center font-bold focus:outline-none focus:ring-2 focus:ring-yellow-300" min={1} max={60} />
             </div>
           </div>
-          <div className="flex gap-2">
-            <button onClick={() => setShowSettings(false)} className="flex-1 px-2 py-1 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
-            <button onClick={saveSettings} className={`flex-1 px-2 py-1 text-white rounded ${currentConfig.bgColor}`}>Save</button>
+          <div className="flex gap-3">
+            <button onClick={() => setShowSettings(false)} className="flex-1 px-3 py-2 bg-gray-200 font-bold border-3 border-black shadow-[2px_2px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_#000] transition-all">Cancel</button>
+            <button onClick={saveSettings} className={`flex-1 px-3 py-2 font-bold border-3 border-black shadow-[2px_2px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_#000] transition-all ${currentConfig.bgColor}`}>Save</button>
           </div>
         </div>
       )}
 
       {/* Timer */}
-      <div className="p-4">
+      <div className="p-6">
         {assignmentTitle && (
-          <p className="text-center text-xs text-gray-500 mb-2 truncate px-2">
+          <p className="text-center text-sm text-gray-700 font-bold mb-3 truncate px-2">
             {assignmentTitle}
           </p>
         )}
         
-        {/* Circular Timer */}
-        <div className="relative w-32 h-32 mx-auto mb-3">
+        {/* Chunky Timer Display */}
+        <div className="relative w-36 h-36 mx-auto mb-4">
           <svg className="w-full h-full -rotate-90">
-            <circle cx="64" cy="64" r="58" fill="none" stroke="currentColor" strokeWidth="6" className="text-gray-200" />
-            <circle cx="64" cy="64" r="58" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round"
-              strokeDasharray={`${2 * Math.PI * 58}`}
-              strokeDashoffset={`${2 * Math.PI * 58 * (1 - progress / 100)}`}
+            <circle cx="72" cy="72" r="66" fill="none" stroke="currentColor" strokeWidth="8" className="text-gray-300" />
+            <circle cx="72" cy="72" r="66" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="square"
+              strokeDasharray={`${2 * Math.PI * 66}`}
+              strokeDashoffset={`${2 * Math.PI * 66 * (1 - progress / 100)}`}
               className={`${currentConfig.color} transition-all duration-1000`} />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-2xl font-bold ${currentConfig.color}`}>{formatTime(timeLeft)}</span>
+            <span className={`text-3xl font-black ${currentConfig.color}`}>{formatTime(timeLeft)}</span>
           </div>
         </div>
 
         {/* Controls */}
-        <div className="flex justify-center items-center gap-2">
-          <button onClick={resetTimer} className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200">
-            <RotateCcw size={18} />
+        <div className="flex justify-center items-center gap-3">
+          <button onClick={resetTimer} className="p-3 bg-gray-200 border-3 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all">
+            <RotateCcw size={20} />
           </button>
           <button onClick={() => setIsRunning(!isRunning)}
-            className={`p-3 rounded-full text-white ${currentConfig.bgColor} hover:opacity-90`}>
-            {isRunning ? <Pause size={24} /> : <Play size={24} />}
+            className={`p-4 border-3 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] transition-all ${currentConfig.bgColor}`}>
+            {isRunning ? <Pause size={28} /> : <Play size={28} />}
           </button>
-          <button onClick={skipPhase} className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200" title="Skip to next phase">
-            <SkipForward size={18} />
+          <button onClick={skipPhase} className="p-3 bg-gray-200 border-3 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all" title="Skip to next phase">
+            <SkipForward size={20} />
           </button>
         </div>
 
         {/* Session dots */}
-        <div className="flex justify-center gap-1 mt-3">
+        <div className="flex justify-center gap-2 mt-4">
           {Array.from({ length: settings.sessionsBeforeLongBreak }).map((_, i) => (
-            <div key={i} className={`w-2 h-2 rounded-full ${i < (completedSessions % settings.sessionsBeforeLongBreak) ? currentConfig.bgColor : 'bg-gray-200'}`} />
+            <div key={i} className={`w-3 h-3 border-2 border-black ${i < (completedSessions % settings.sessionsBeforeLongBreak) ? currentConfig.bgColor : 'bg-gray-200'}`} />
           ))}
         </div>
-        <p className="text-center text-[10px] text-gray-400 mt-1">{completedSessions} sessions today</p>
+        <p className="text-center text-xs font-bold text-gray-600 mt-2">{completedSessions} sessions today</p>
       </div>
     </div>
   );

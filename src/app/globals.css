@@ -4,43 +4,176 @@
 
 :root {
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 250, 250, 250;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 15, 15, 15;
-    --background-end-rgb: 0, 0, 0;
-  }
+  --background: #f0f0f0;
+  --shadow-color: #000000;
+  --border-width: 3px;
+  --shadow-offset: 4px;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-    to bottom,
-    rgb(var(--background-start-rgb)),
-    rgb(var(--background-end-rgb))
-  );
+  background: var(--background);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Neo-Brutalism Base Components */
+@layer components {
+  /* Cards with bold shadows */
+  .neo-card {
+    @apply bg-white border-3 border-black rounded-xl;
+    box-shadow: 4px 4px 0 0 #000;
+    transition: all 0.15s ease;
+  }
+  
+  .neo-card:hover {
+    box-shadow: 6px 6px 0 0 #000;
+    transform: translate(-2px, -2px);
+  }
+  
+  .neo-card-flat {
+    @apply bg-white border-3 border-black rounded-xl;
+    box-shadow: 4px 4px 0 0 #000;
+  }
+
+  /* Primary button */
+  .neo-btn {
+    @apply px-5 py-2.5 bg-white border-3 border-black rounded-xl font-bold;
+    box-shadow: 4px 4px 0 0 #000;
+    transition: all 0.1s ease;
+  }
+  
+  .neo-btn:hover {
+    box-shadow: 2px 2px 0 0 #000;
+    transform: translate(2px, 2px);
+  }
+  
+  .neo-btn:active {
+    box-shadow: 0 0 0 0 #000;
+    transform: translate(4px, 4px);
+  }
+
+  .neo-btn-primary {
+    @apply neo-btn bg-violet-500 text-white;
+  }
+  
+  .neo-btn-success {
+    @apply neo-btn bg-emerald-400 text-black;
+  }
+  
+  .neo-btn-danger {
+    @apply neo-btn bg-rose-400 text-black;
+  }
+  
+  .neo-btn-warning {
+    @apply neo-btn bg-amber-400 text-black;
+  }
+
+  /* Input fields */
+  .neo-input {
+    @apply w-full px-4 py-3 bg-white border-3 border-black rounded-xl text-black placeholder:text-gray-400;
+    box-shadow: 4px 4px 0 0 #000;
+    transition: all 0.15s ease;
+  }
+  
+  .neo-input:focus {
+    @apply outline-none ring-0;
+    box-shadow: 2px 2px 0 0 #000;
+    transform: translate(2px, 2px);
+  }
+
+  /* Select dropdowns */
+  .neo-select {
+    @apply w-full px-4 py-3 bg-white border-3 border-black rounded-xl text-black appearance-none cursor-pointer;
+    box-shadow: 4px 4px 0 0 #000;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 20px;
+    padding-right: 40px;
+  }
+
+  /* Badge styles */
+  .neo-badge {
+    @apply px-3 py-1 text-xs font-bold border-2 border-black rounded-full;
+    box-shadow: 2px 2px 0 0 #000;
+  }
+  
+  .neo-badge-violet {
+    @apply neo-badge bg-violet-300;
+  }
+  
+  .neo-badge-emerald {
+    @apply neo-badge bg-emerald-300;
+  }
+  
+  .neo-badge-amber {
+    @apply neo-badge bg-amber-300;
+  }
+  
+  .neo-badge-rose {
+    @apply neo-badge bg-rose-300;
+  }
+  
+  .neo-badge-sky {
+    @apply neo-badge bg-sky-300;
+  }
+
+  /* Tabs */
+  .neo-tab {
+    @apply px-5 py-2.5 font-bold border-3 border-black rounded-xl transition-all;
+  }
+  
+  .neo-tab-active {
+    @apply bg-violet-400;
+    box-shadow: 3px 3px 0 0 #000;
+  }
+  
+  .neo-tab-inactive {
+    @apply bg-white hover:bg-gray-100;
+    box-shadow: 3px 3px 0 0 #000;
+  }
+  
+  .neo-tab-inactive:hover {
+    box-shadow: 2px 2px 0 0 #000;
+    transform: translate(1px, 1px);
+  }
+}
+
+/* Custom border width */
+@layer utilities {
+  .border-3 {
+    border-width: 3px;
+  }
+  .border-4 {
+    border-width: 4px;
+  }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: #e0e0e0;
+  border-radius: 6px;
+  border: 2px solid #000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+  background: #a855f7;
+  border-radius: 6px;
+  border: 2px solid #000;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
+  background: #9333ea;
 }
+
+/* Selection color */
+::selection {
+  background: #c4b5fd;
+  color: #000;
+}
+

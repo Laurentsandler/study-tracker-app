@@ -34,37 +34,39 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-4">
+    <main className="min-h-screen bg-cyan-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <Link href="/" className="flex items-center justify-center gap-2 mb-8">
-          <BookOpen className="h-10 w-10 text-primary-600" />
-          <span className="text-3xl font-bold text-gray-900">StudyTracker</span>
+        <Link href="/" className="flex items-center justify-center gap-3 mb-8">
+          <div className="p-3 bg-yellow-300 border-3 border-black shadow-[4px_4px_0_0_#000]">
+            <BookOpen className="h-8 w-8" />
+          </div>
+          <span className="text-3xl font-black text-black">StudyTracker</span>
         </Link>
 
         {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
+        <div className="bg-white border-3 border-black shadow-[8px_8px_0_0_#000] p-8">
+          <h1 className="text-2xl font-black text-black text-center mb-2">
             Welcome back
           </h1>
-          <p className="text-gray-500 text-center mb-8">
+          <p className="text-gray-600 font-medium text-center mb-8">
             Log in to continue your study journey
           </p>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700">
+            <div className="mb-6 p-4 bg-rose-200 border-3 border-black flex items-center gap-3">
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
-              <span className="text-sm">{error}</span>
+              <span className="text-sm font-bold">{error}</span>
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-bold text-black mb-2">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-600" />
                 <input
                   id="email"
                   type="email"
@@ -72,17 +74,17 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
+                  className="w-full pl-10 pr-4 py-3 border-3 border-black font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-bold text-black mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-600" />
                 <input
                   id="password"
                   type="password"
@@ -90,17 +92,17 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
+                  className="w-full pl-10 pr-4 py-3 border-3 border-black font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all"
                 />
               </div>
             </div>
 
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm text-gray-600">
-                <input type="checkbox" className="rounded border-gray-300" />
+              <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                <input type="checkbox" className="w-4 h-4 border-2 border-black accent-yellow-300" />
                 Remember me
               </label>
-              <Link href="/forgot-password" className="text-sm text-primary-600 hover:text-primary-700">
+              <Link href="/forgot-password" className="text-sm font-bold text-black hover:underline underline-offset-4">
                 Forgot password?
               </Link>
             </div>
@@ -108,15 +110,15 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full py-3 bg-yellow-300 font-black border-3 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? 'Logging in...' : 'Log in'}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-gray-500">
+          <p className="mt-6 text-center text-gray-700 font-medium">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-primary-600 font-medium hover:text-primary-700">
+            <Link href="/signup" className="font-bold text-black hover:underline underline-offset-4">
               Sign up
             </Link>
           </p>

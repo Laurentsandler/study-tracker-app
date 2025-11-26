@@ -83,6 +83,8 @@ export default function HelpMeStudyPage() {
   const [combinedContent, setCombinedContent] = useState('');
   const [overview, setOverview] = useState<StudyOverview | null>(null);
   const [generatedMaterials, setGeneratedMaterials] = useState<GeneratedMaterial[]>([]);
+  const [relatedTerms, setRelatedTerms] = useState<string[]>([]);
+  const [courseContext, setCourseContext] = useState<string>('');
   
   // UI state
   const [loading, setLoading] = useState(false);
@@ -151,6 +153,8 @@ export default function HelpMeStudyPage() {
         setSources(data.data.sources);
         setCombinedContent(data.data.combinedContent);
         setOverview(data.data.overview);
+        setRelatedTerms(data.data.relatedTerms || []);
+        setCourseContext(data.data.courseContext || '');
         setStep('review');
       } else {
         throw new Error(data.error || 'Unknown error');
@@ -405,11 +409,11 @@ export default function HelpMeStudyPage() {
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Gathering Materials...
+                  AI is finding related materials...
                 </>
               ) : (
                 <>
-                  <Search className="w-5 h-5" />
+                  <Sparkles className="w-5 h-5" />
                   Find My Study Materials
                 </>
               )}
@@ -429,6 +433,11 @@ export default function HelpMeStudyPage() {
                   {overview.topic}
                   {overview.unit && <span className="text-purple-600"> - {overview.unit}</span>}
                 </h2>
+                {courseContext && (
+                  <p className="text-sm text-purple-600 font-medium mt-1">
+                    Detected Course: {courseContext}
+                  </p>
+                )}
                 {overview.summary && (
                   <p className="text-gray-600 mt-1">{overview.summary}</p>
                 )}
@@ -440,6 +449,26 @@ export default function HelpMeStudyPage() {
                 Modify Search
               </button>
             </div>
+
+            {/* AI Search Info */}
+            {relatedTerms.length > 0 && (
+              <div className="mb-4 p-3 bg-white/60 rounded-lg border border-purple-100">
+                <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  AI searched for these related concepts:
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {relatedTerms.map((term, i) => (
+                    <span
+                      key={i}
+                      className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs"
+                    >
+                      {term}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">

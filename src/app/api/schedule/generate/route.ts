@@ -198,7 +198,7 @@ OUTPUT FORMAT - Return ONLY a valid JSON object:
 {
   "suggestions": [
     {
-      "assignmentId": "uuid-from-assignments-list",
+      "assignmentId": "copy-exact-uuid-from-assignments-list",
       "assignmentTitle": "Assignment Title",
       "date": "YYYY-MM-DD",
       "startTime": "HH:MM",
@@ -210,27 +210,30 @@ OUTPUT FORMAT - Return ONLY a valid JSON object:
   "insights": "A paragraph with study tips, workload analysis, and encouragement"
 }
 
-VALIDATION:
-- assignmentId MUST match an ID from the assignments list exactly
-- date MUST be in YYYY-MM-DD format within the planning period
-- startTime and endTime MUST be in HH:MM format (24-hour)
-- All suggestions must fit within available time blocks for that day of week
-- Prefer earlier dates over later dates when possible
-
-CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
+CRITICAL REQUIREMENTS:
+1. You MUST create at least one suggestion for each pending assignment
+2. assignmentId MUST be copied EXACTLY from the "id" field in the assignments list (it's a UUID like "abc123-def456-...")
+3. date MUST be in YYYY-MM-DD format within the planning period
+4. startTime and endTime MUST be in HH:MM format (24-hour, e.g., "09:00", "14:30")
+5. All suggestions must fit within available time blocks for that day of week
+6. Return ONLY valid JSON - no markdown, no code blocks, no extra text`,
         },
         {
           role: 'user',
           content: `Please create a study schedule for the next 2 weeks. PRIORITIZE using study blocks during school hours before using after-school or weekend time.
 
-WEEKLY AVAILABILITY:
+IMPORTANT: You MUST use the EXACT assignment IDs from the list below. Copy them exactly as shown.
+
+WEEKLY AVAILABILITY (these are recurring every week):
 ${JSON.stringify(formattedSchedule, null, 2)}
 
-PENDING ASSIGNMENTS:
+PENDING ASSIGNMENTS (use these EXACT IDs in your suggestions):
 ${JSON.stringify(formattedAssignments, null, 2)}
 
-ALREADY SCHEDULED (avoid conflicts):
-${JSON.stringify(formattedExistingTasks, null, 2)}`,
+ALREADY SCHEDULED (avoid these time slots):
+${JSON.stringify(formattedExistingTasks, null, 2)}
+
+Remember: Create at least one suggestion for each assignment. Use the exact "id" field from each assignment.`,
         },
       ],
       temperature: 0.7,
@@ -238,6 +241,8 @@ ${JSON.stringify(formattedExistingTasks, null, 2)}`,
     });
 
     const responseText = completion.choices[0]?.message?.content || '';
+    
+    console.log('AI Raw Response:', responseText);
     
     // Parse AI response using improved parser
     let aiResponse;
@@ -254,6 +259,7 @@ ${JSON.stringify(formattedExistingTasks, null, 2)}`,
         }>;
         insights?: string;
       }>(responseText);
+      console.log('Parsed AI Response:', JSON.stringify(aiResponse, null, 2));
     } catch (parseError) {
       console.error('Error parsing AI response:', responseText);
       return NextResponse.json({ 
@@ -266,23 +272,34 @@ ${JSON.stringify(formattedExistingTasks, null, 2)}`,
     // Validate suggestions
     const validSuggestions = (aiResponse.suggestions || []).filter(s => {
       // Ensure required fields exist
-      if (!s.assignmentId || !s.date || !s.startTime || !s.endTime) return false;
+      if (!s.assignmentId || !s.date || !s.startTime || !s.endTime) {
+        console.warn('Suggestion missing required fields:', s);
+        return false;
+      }
       
       // Ensure assignment ID exists in our assignments list
       const assignmentExists = assignments.some(a => a.id === s.assignmentId);
       if (!assignmentExists) {
-        console.warn(`Invalid assignment ID in suggestion: ${s.assignmentId}`);
+        console.warn(`Invalid assignment ID in suggestion: ${s.assignmentId}. Valid IDs:`, assignments.map(a => a.id));
         return false;
       }
       
       // Ensure date is in valid format
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(s.date)) return false;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s.date)) {
+        console.warn('Invalid date format:', s.date);
+        return false;
+      }
       
       // Ensure times are in valid format
-      if (!/^\d{2}:\d{2}$/.test(s.startTime) || !/^\d{2}:\d{2}$/.test(s.endTime)) return false;
+      if (!/^\d{2}:\d{2}$/.test(s.startTime) || !/^\d{2}:\d{2}$/.test(s.endTime)) {
+        console.warn('Invalid time format:', s.startTime, s.endTime);
+        return false;
+      }
       
       return true;
     });
+
+    console.log('Valid suggestions count:', validSuggestions.length);
 
     // Save suggestions to database
     if (validSuggestions.length > 0) {

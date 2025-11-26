@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   FileText,
+  Sparkles,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 
@@ -50,6 +51,7 @@ export default function DashboardLayout({
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/assignments', label: 'Assignments', icon: ClipboardList },
     { href: '/dashboard/worklogs', label: 'Work Logs', icon: FileText },
+    { href: '/dashboard/study', label: 'Help Me Study', icon: Sparkles },
     { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
     { href: '/dashboard/capture', label: 'Capture', icon: Camera },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings },

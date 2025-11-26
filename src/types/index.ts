@@ -204,3 +204,53 @@ export interface CreateWorklogInput {
 }
 
 export interface UpdateWorklogInput extends Partial<CreateWorklogInput> {}
+
+// Study Session types for "Help Me Study" feature
+export interface StudySessionConfig {
+  topic: string;
+  unit?: string;
+  subject?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  courseId?: string;
+  includeWorklogs: boolean;
+  includeAssignments: boolean;
+  materialTypes: StudyMaterialType[];
+}
+
+export interface StudySessionSource {
+  type: 'worklog' | 'assignment';
+  id: string;
+  title: string;
+  date: string;
+  content: string;
+  topic?: string;
+}
+
+export interface StudySession {
+  id: string;
+  config: StudySessionConfig;
+  sources: StudySessionSource[];
+  combinedContent: string;
+  generatedMaterials: {
+    type: StudyMaterialType;
+    content: NotesContent | StudyGuideContent | PracticeTestContent | FlashcardsContent;
+    generatedAt: string;
+  }[];
+  createdAt: string;
+}
+
+export interface StudyPlanOverview {
+  topic: string;
+  unit?: string;
+  totalSources: number;
+  worklogCount: number;
+  assignmentCount: number;
+  dateRange: {
+    from: string;
+    to: string;
+  };
+  keyTopics: string[];
+  recommendedFocus: string[];
+  estimatedStudyTime: number; // in minutes
+}

@@ -114,6 +114,8 @@ CREATE TABLE IF NOT EXISTS user_schedule (
     available_start TIME NOT NULL,
     available_end TIME NOT NULL,
     label TEXT, -- e.g., "Free time", "Study block"
+    block_type TEXT DEFAULT 'study', -- 'class', 'study', 'free', 'work', 'other'
+    location TEXT, -- e.g., "Home", "Library", "School"
     is_recurring BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -124,14 +126,31 @@ CREATE TABLE IF NOT EXISTS user_schedule (
 CREATE TABLE IF NOT EXISTS planned_tasks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-    assignment_id UUID REFERENCES assignments(id) ON DELETE CASCADE NOT NULL,
+    assignment_id UUID REFERENCES assignments(id) ON DELETE CASCADE,
     scheduled_date DATE NOT NULL,
     scheduled_start TIME NOT NULL,
     scheduled_end TIME NOT NULL,
     completed BOOLEAN DEFAULT false,
     notes TEXT,
+    title TEXT, -- For non-assignment tasks
+    task_type TEXT DEFAULT 'assignment', -- 'assignment', 'study', 'review', 'break'
+    ai_generated BOOLEAN DEFAULT false,
+    priority INTEGER DEFAULT 0, -- For AI sorting
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- AI Schedule Suggestions
+CREATE TABLE IF NOT EXISTS schedule_suggestions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+    assignment_id UUID REFERENCES assignments(id) ON DELETE CASCADE,
+    suggested_date DATE NOT NULL,
+    suggested_start TIME NOT NULL,
+    suggested_end TIME NOT NULL,
+    reason TEXT, -- AI's reasoning for this suggestion
+    status TEXT DEFAULT 'pending', -- 'pending', 'accepted', 'dismissed'
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Transcriptions (Voice input)
@@ -179,6 +198,9 @@ CREATE INDEX IF NOT EXISTS idx_user_schedule_user_id ON user_schedule(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_schedule_day ON user_schedule(day_of_week);
 CREATE INDEX IF NOT EXISTS idx_planned_tasks_user_id ON planned_tasks(user_id);
 CREATE INDEX IF NOT EXISTS idx_planned_tasks_date ON planned_tasks(scheduled_date);
+CREATE INDEX IF NOT EXISTS idx_planned_tasks_assignment_id ON planned_tasks(assignment_id);
+CREATE INDEX IF NOT EXISTS idx_schedule_suggestions_user_id ON schedule_suggestions(user_id);
+CREATE INDEX IF NOT EXISTS idx_schedule_suggestions_status ON schedule_suggestions(status);
 CREATE INDEX IF NOT EXISTS idx_transcriptions_user_id ON transcriptions(user_id);
 
 -- Worklog indexes
@@ -204,6 +226,9 @@ ALTER TABLE transcriptions ENABLE ROW LEVEL SECURITY;
 
 -- Enable RLS on worklogs
 ALTER TABLE worklogs ENABLE ROW LEVEL SECURITY;
+
+-- Enable RLS on schedule_suggestions
+ALTER TABLE schedule_suggestions ENABLE ROW LEVEL SECURITY;
 
 -- Profiles policies
 DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
@@ -348,6 +373,23 @@ CREATE POLICY "Users can update own worklogs" ON worklogs
 
 DROP POLICY IF EXISTS "Users can delete own worklogs" ON worklogs;
 CREATE POLICY "Users can delete own worklogs" ON worklogs
+    FOR DELETE USING (auth.uid() = user_id);
+
+-- Schedule suggestions policies
+DROP POLICY IF EXISTS "Users can view own schedule suggestions" ON schedule_suggestions;
+CREATE POLICY "Users can view own schedule suggestions" ON schedule_suggestions
+    FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can create own schedule suggestions" ON schedule_suggestions;
+CREATE POLICY "Users can create own schedule suggestions" ON schedule_suggestions
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own schedule suggestions" ON schedule_suggestions;
+CREATE POLICY "Users can update own schedule suggestions" ON schedule_suggestions
+    FOR UPDATE USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own schedule suggestions" ON schedule_suggestions;
+CREATE POLICY "Users can delete own schedule suggestions" ON schedule_suggestions
     FOR DELETE USING (auth.uid() = user_id);
 
 -- =============================================

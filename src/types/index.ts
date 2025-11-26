@@ -4,6 +4,9 @@ export type AssignmentStatus = 'pending' | 'in_progress' | 'completed';
 export type AssignmentPriority = 'low' | 'medium' | 'high';
 export type StudyMaterialType = 'notes' | 'study_guide' | 'practice_test' | 'flashcards';
 export type WorklogType = 'classwork' | 'homework' | 'notes' | 'quiz' | 'test' | 'project' | 'other';
+export type ScheduleBlockType = 'class' | 'study' | 'free' | 'work' | 'other';
+export type TaskType = 'assignment' | 'study' | 'review' | 'break';
+export type SuggestionStatus = 'pending' | 'accepted' | 'dismissed';
 
 export interface Profile {
   id: string;
@@ -110,6 +113,8 @@ export interface UserSchedule {
   available_start: string; // HH:MM format
   available_end: string;
   label: string | null;
+  block_type: ScheduleBlockType;
+  location: string | null;
   is_recurring: boolean;
   created_at: string;
   updated_at: string;
@@ -118,14 +123,32 @@ export interface UserSchedule {
 export interface PlannedTask {
   id: string;
   user_id: string;
-  assignment_id: string;
+  assignment_id: string | null;
   scheduled_date: string;
   scheduled_start: string;
   scheduled_end: string;
   completed: boolean;
   notes: string | null;
+  title: string | null;
+  task_type: TaskType;
+  ai_generated: boolean;
+  priority: number;
   created_at: string;
   updated_at: string;
+  // Joined data
+  assignment?: Assignment;
+}
+
+export interface ScheduleSuggestion {
+  id: string;
+  user_id: string;
+  assignment_id: string | null;
+  suggested_date: string;
+  suggested_start: string;
+  suggested_end: string;
+  reason: string | null;
+  status: SuggestionStatus;
+  created_at: string;
   // Joined data
   assignment?: Assignment;
 }
@@ -187,6 +210,20 @@ export interface ScheduleBlockInput {
   available_start: string;
   available_end: string;
   label?: string;
+  block_type?: ScheduleBlockType;
+  location?: string;
+}
+
+export interface CreatePlannedTaskInput {
+  assignment_id?: string;
+  scheduled_date: string;
+  scheduled_start: string;
+  scheduled_end: string;
+  title?: string;
+  task_type?: TaskType;
+  notes?: string;
+  ai_generated?: boolean;
+  priority?: number;
 }
 
 export interface CreateWorklogInput {

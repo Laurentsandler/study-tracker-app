@@ -805,13 +805,84 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
   const [showResults, setShowResults] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [mode, setMode] = useState<'all' | 'one'>('all');
+  const [isGrading, setIsGrading] = useState(false);
+  const [aiGrades, setAiGrades] = useState<Record<string, { isCorrect: boolean; score: number; feedback: string }>>({});
 
   const handleAnswer = (questionId: string, answer: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
+  const gradeShortAnswers = async () => {
+    const shortAnswerQuestions = questions.filter(q => q.type === 'short_answer' && answers[q.id]);
+    
+    if (shortAnswerQuestions.length === 0) return;
+
+    setIsGrading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch('/api/study-session/grade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          questions: shortAnswerQuestions.map((q, i) => ({
+            question: q.question,
+            correctAnswer: q.correctAnswer,
+            studentAnswer: answers[q.id],
+          })),
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const gradesMap: Record<string, { isCorrect: boolean; score: number; feedback: string }> = {};
+        
+        data.grades.forEach((grade: any, i: number) => {
+          const questionId = shortAnswerQuestions[i].id;
+          gradesMap[questionId] = {
+            isCorrect: grade.isCorrect,
+            score: grade.score,
+            feedback: grade.feedback,
+          };
+        });
+        
+        setAiGrades(gradesMap);
+      }
+    } catch (error) {
+      console.error('Error grading short answers:', error);
+    } finally {
+      setIsGrading(false);
+    }
+  };
+
+  const handleCheckAnswers = async () => {
+    await gradeShortAnswers();
+    setShowResults(true);
+  };
+
   const getScore = () => {
-    return questions.filter(q => answers[q.id] === q.correctAnswer).length;
+    let correct = 0;
+    questions.forEach(q => {
+      if (q.type === 'short_answer') {
+        // Use AI grade for short answer
+        if (aiGrades[q.id]?.isCorrect) correct++;
+      } else {
+        // Use exact match for MC and T/F
+        if (answers[q.id] === q.correctAnswer) correct++;
+      }
+    });
+    return correct;
+  };
+
+  const isQuestionCorrect = (q: any) => {
+    if (q.type === 'short_answer') {
+      return aiGrades[q.id]?.isCorrect || false;
+    }
+    return answers[q.id] === q.correctAnswer;
   };
 
   const getScoreColor = (percentage: number) => {
@@ -934,33 +1005,73 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
         )}
 
         {q.type === 'short_answer' && (
-          <input
-            type="text"
+          <textarea
             value={answers[q.id] || ''}
             onChange={(e) => handleAnswer(q.id, e.target.value)}
             disabled={showResults}
             placeholder="Type your answer here..."
-            className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:border-purple-500 focus:ring-0 transition-colors"
+            rows={3}
+            className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:border-purple-500 focus:ring-0 transition-colors resize-none"
           />
         )}
 
-        {showResults && (
+        {showResults && q.type === 'short_answer' && aiGrades[q.id] && (
           <div className={`mt-4 p-4 rounded-xl ${
-            answers[q.id] === q.correctAnswer
+            aiGrades[q.id].isCorrect
+              ? 'bg-green-50 border border-green-200'
+              : aiGrades[q.id].score >= 50
+                ? 'bg-amber-50 border border-amber-200'
+                : 'bg-red-50 border border-red-200'
+          }`}>
+            <div className="flex items-start gap-3">
+              {aiGrades[q.id].isCorrect ? (
+                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+              ) : aiGrades[q.id].score >= 50 ? (
+                <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+              )}
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <p className={`font-medium ${
+                    aiGrades[q.id].isCorrect ? 'text-green-800' : aiGrades[q.id].score >= 50 ? 'text-amber-800' : 'text-red-800'
+                  }`}>
+                    {aiGrades[q.id].isCorrect ? 'Correct!' : aiGrades[q.id].score >= 50 ? 'Partially Correct' : 'Incorrect'}
+                  </p>
+                  <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                    aiGrades[q.id].score >= 80 ? 'bg-green-100 text-green-700' :
+                    aiGrades[q.id].score >= 50 ? 'bg-amber-100 text-amber-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>
+                    {aiGrades[q.id].score}%
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mt-1">{aiGrades[q.id].feedback}</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  <span className="font-medium">Expected answer:</span> {q.correctAnswer}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showResults && q.type !== 'short_answer' && (
+          <div className={`mt-4 p-4 rounded-xl ${
+            isQuestionCorrect(q)
               ? 'bg-green-50 border border-green-200'
               : 'bg-amber-50 border border-amber-200'
           }`}>
             <div className="flex items-start gap-3">
-              {answers[q.id] === q.correctAnswer ? (
+              {isQuestionCorrect(q) ? (
                 <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
               ) : (
                 <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
               )}
               <div>
                 <p className={`font-medium ${
-                  answers[q.id] === q.correctAnswer ? 'text-green-800' : 'text-amber-800'
+                  isQuestionCorrect(q) ? 'text-green-800' : 'text-amber-800'
                 }`}>
-                  {answers[q.id] === q.correctAnswer ? 'Correct!' : `Correct Answer: ${q.correctAnswer}`}
+                  {isQuestionCorrect(q) ? 'Correct!' : `Correct Answer: ${q.correctAnswer}`}
                 </p>
                 {q.explanation && (
                   <p className="text-sm text-gray-600 mt-1">{q.explanation}</p>
@@ -1080,6 +1191,7 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
                 setShowResults(false);
                 setAnswers({});
                 setCurrentQuestion(0);
+                setAiGrades({});
               }}
               className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium transition-colors"
             >
@@ -1090,14 +1202,25 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-gray-900">Ready to submit?</p>
-              <p className="text-sm text-gray-600">You can still review your answers before checking</p>
+              <p className="text-sm text-gray-600">
+                {questions.some(q => q.type === 'short_answer') 
+                  ? 'AI will grade your short answer responses'
+                  : 'You can still review your answers before checking'}
+              </p>
             </div>
             <button
-              onClick={() => setShowResults(true)}
-              disabled={Object.keys(answers).length === 0}
-              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleCheckAnswers}
+              disabled={Object.keys(answers).length === 0 || isGrading}
+              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Check Answers
+              {isGrading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Grading...
+                </>
+              ) : (
+                'Check Answers'
+              )}
             </button>
           </div>
         )}

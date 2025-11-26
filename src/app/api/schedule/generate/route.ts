@@ -17,6 +17,44 @@ const getSupabaseAdmin = () => {
   return createClient(supabaseUrl, supabaseServiceKey);
 };
 
+// Helper function to clean and parse JSON from AI response
+function parseJsonResponse<T>(response: string): T {
+  let cleaned = response.trim();
+  
+  // Remove markdown code blocks if present
+  if (cleaned.startsWith('```json')) {
+    cleaned = cleaned.slice(7);
+  } else if (cleaned.startsWith('```')) {
+    cleaned = cleaned.slice(3);
+  }
+  
+  if (cleaned.endsWith('```')) {
+    cleaned = cleaned.slice(0, -3);
+  }
+  
+  cleaned = cleaned.trim();
+  
+  // Try to find JSON object or array in the response
+  const jsonMatch = cleaned.match(/[\[{][\s\S]*[\]}]/);
+  if (jsonMatch) {
+    cleaned = jsonMatch[0];
+  }
+  
+  // Fix common JSON issues from AI responses
+  cleaned = cleaned
+    .replace(/,\s*}/g, '}')  // Remove trailing commas in objects
+    .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
+    .replace(/[\u201C\u201D]/g, '"')  // Replace smart quotes
+    .replace(/[\u2018\u2019]/g, "'"); // Replace smart apostrophes
+  
+  try {
+    return JSON.parse(cleaned);
+  } catch (error) {
+    console.error('Failed to parse JSON response:', cleaned);
+    throw new Error('Failed to parse AI response as JSON');
+  }
+}
+
 // POST - Generate AI schedule suggestions based on assignments and user schedule
 export async function POST(request: NextRequest) {
   try {
@@ -75,6 +113,8 @@ export async function POST(request: NextRequest) {
 
     // Format data for AI
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
     
     const formattedSchedule = scheduleBlocks.map(block => ({
       day: dayNames[block.day_of_week],
@@ -103,51 +143,68 @@ export async function POST(request: NextRequest) {
       assignmentId: t.assignment_id,
     }));
 
+    // Calculate some helpful dates
+    const todayStr = today.toISOString().split('T')[0];
+    const twoWeeksStr = twoWeeksFromNow.toISOString().split('T')[0];
+
     // Call AI to generate suggestions
     const completion = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
         {
           role: 'system',
-          content: `You are an intelligent study scheduler assistant. Your job is to help students schedule their study time effectively.
+          content: `You are an intelligent study scheduler assistant helping students plan their study time effectively.
 
-Given:
-1. A student's weekly availability (recurring schedule blocks)
-2. Their pending assignments with due dates and estimated duration
-3. Already scheduled tasks (to avoid conflicts)
+CURRENT DATE CONTEXT:
+- Today: ${monthNames[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()} (${dayNames[today.getDay()]})
+- Today (ISO): ${todayStr}
+- Planning Period: ${todayStr} to ${twoWeeksStr} (next 2 weeks)
+- Current Day of Week: ${today.getDay()} (0=Sunday, 6=Saturday)
 
-Create a study plan that:
-- Schedules study sessions BEFORE due dates (ideally 1-2 days before)
-- Uses the student's available "study" and "free" time blocks
-- Avoids scheduling during "class" blocks
-- Breaks large assignments into multiple sessions if needed
-- Prioritizes urgent assignments (due soon) and high-priority items
-- Leaves some buffer time - don't over-schedule
-- Considers the assignment's estimated duration
+TASK: Create an optimal study schedule based on the student's availability and assignments.
 
-Today's date is: ${today.toISOString().split('T')[0]} (${dayNames[today.getDay()]})
+INPUT DATA:
+1. Weekly availability - recurring time blocks showing when student is available
+2. Pending assignments - with due dates, priorities, and estimated duration
+3. Already scheduled tasks - to avoid conflicts
 
-Return a JSON object with:
+SCHEDULING RULES:
+1. Schedule study sessions BEFORE due dates (ideally 1-2 days before)
+2. Only use "study" and "free" time blocks for study sessions
+3. NEVER schedule during "class" or "work" blocks
+4. Break assignments >90 minutes into multiple sessions
+5. High priority items should be scheduled first
+6. Leave buffer time - don't schedule back-to-back
+7. Match session length to estimated duration
+8. Suggest locations based on the schedule block's location
+
+OUTPUT FORMAT - Return ONLY a valid JSON object:
 {
   "suggestions": [
     {
-      "assignmentId": "uuid",
-      "assignmentTitle": "title for display",
+      "assignmentId": "uuid-from-assignments-list",
+      "assignmentTitle": "Assignment Title",
       "date": "YYYY-MM-DD",
       "startTime": "HH:MM",
       "endTime": "HH:MM",
-      "reason": "Brief explanation of why this time slot",
-      "location": "suggested location based on schedule"
+      "reason": "Brief explanation",
+      "location": "suggested location"
     }
   ],
-  "insights": "A brief paragraph with study tips based on their workload"
+  "insights": "A paragraph with study tips and workload analysis"
 }
 
-Only return valid JSON, no markdown.`,
+VALIDATION:
+- assignmentId MUST match an ID from the assignments list
+- date MUST be in YYYY-MM-DD format within the planning period
+- startTime and endTime MUST be in HH:MM format (24-hour)
+- All suggestions must fit within available time blocks
+
+CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
         },
         {
           role: 'user',
-          content: `Here's my schedule and assignments:
+          content: `Please create a study schedule for the next 2 weeks.
 
 WEEKLY AVAILABILITY:
 ${JSON.stringify(formattedSchedule, null, 2)}
@@ -156,9 +213,7 @@ PENDING ASSIGNMENTS:
 ${JSON.stringify(formattedAssignments, null, 2)}
 
 ALREADY SCHEDULED (avoid conflicts):
-${JSON.stringify(formattedExistingTasks, null, 2)}
-
-Please create a study schedule for the next 2 weeks.`,
+${JSON.stringify(formattedExistingTasks, null, 2)}`,
         },
       ],
       temperature: 0.7,
@@ -167,15 +222,21 @@ Please create a study schedule for the next 2 weeks.`,
 
     const responseText = completion.choices[0]?.message?.content || '';
     
-    // Parse AI response
+    // Parse AI response using improved parser
     let aiResponse;
     try {
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        aiResponse = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No JSON found');
-      }
+      aiResponse = parseJsonResponse<{
+        suggestions?: Array<{
+          assignmentId: string;
+          assignmentTitle: string;
+          date: string;
+          startTime: string;
+          endTime: string;
+          reason?: string;
+          location?: string;
+        }>;
+        insights?: string;
+      }>(responseText);
     } catch (parseError) {
       console.error('Error parsing AI response:', responseText);
       return NextResponse.json({ 
@@ -185,8 +246,29 @@ Please create a study schedule for the next 2 weeks.`,
       });
     }
 
+    // Validate suggestions
+    const validSuggestions = (aiResponse.suggestions || []).filter(s => {
+      // Ensure required fields exist
+      if (!s.assignmentId || !s.date || !s.startTime || !s.endTime) return false;
+      
+      // Ensure assignment ID exists in our assignments list
+      const assignmentExists = assignments.some(a => a.id === s.assignmentId);
+      if (!assignmentExists) {
+        console.warn(`Invalid assignment ID in suggestion: ${s.assignmentId}`);
+        return false;
+      }
+      
+      // Ensure date is in valid format
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s.date)) return false;
+      
+      // Ensure times are in valid format
+      if (!/^\d{2}:\d{2}$/.test(s.startTime) || !/^\d{2}:\d{2}$/.test(s.endTime)) return false;
+      
+      return true;
+    });
+
     // Save suggestions to database
-    if (aiResponse.suggestions && aiResponse.suggestions.length > 0) {
+    if (validSuggestions.length > 0) {
       // Clear old pending suggestions
       await supabase
         .from('schedule_suggestions')
@@ -195,13 +277,13 @@ Please create a study schedule for the next 2 weeks.`,
         .eq('status', 'pending');
 
       // Insert new suggestions
-      const suggestionsToInsert = aiResponse.suggestions.map((s: any) => ({
+      const suggestionsToInsert = validSuggestions.map((s) => ({
         user_id: user.id,
         assignment_id: s.assignmentId,
         suggested_date: s.date,
         suggested_start: s.startTime,
         suggested_end: s.endTime,
-        reason: s.reason,
+        reason: s.reason || 'AI-suggested study session',
         status: 'pending',
       }));
 
@@ -211,7 +293,7 @@ Please create a study schedule for the next 2 weeks.`,
     }
 
     return NextResponse.json({
-      suggestions: aiResponse.suggestions || [],
+      suggestions: validSuggestions,
       insights: aiResponse.insights || '',
     });
   } catch (error) {

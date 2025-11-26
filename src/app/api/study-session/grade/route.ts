@@ -17,6 +17,42 @@ const getSupabaseAdmin = () => {
   return createClient(supabaseUrl, supabaseServiceKey);
 };
 
+// Helper function to clean and parse JSON from AI response
+function parseJsonResponse<T>(response: string): T {
+  let cleaned = response.trim();
+  
+  if (cleaned.startsWith('```json')) {
+    cleaned = cleaned.slice(7);
+  } else if (cleaned.startsWith('```')) {
+    cleaned = cleaned.slice(3);
+  }
+  
+  if (cleaned.endsWith('```')) {
+    cleaned = cleaned.slice(0, -3);
+  }
+  
+  cleaned = cleaned.trim();
+  
+  const jsonMatch = cleaned.match(/[\[{][\s\S]*[\]}]/);
+  if (jsonMatch) {
+    cleaned = jsonMatch[0];
+  }
+  
+  // Fix common JSON issues
+  cleaned = cleaned
+    .replace(/,\s*}/g, '}')
+    .replace(/,\s*]/g, ']')
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'");
+  
+  try {
+    return JSON.parse(cleaned);
+  } catch (error) {
+    console.error('Failed to parse JSON response:', cleaned);
+    throw new Error('Failed to parse AI response as JSON');
+  }
+}
+
 // POST - Grade short answer questions using AI
 export async function POST(request: NextRequest) {
   try {
@@ -56,20 +92,49 @@ Student's Answer: ${q.studentAnswer}
           role: 'system',
           content: `You are a helpful and encouraging teacher grading student answers on a practice test.
 
-For each question, evaluate the student's answer against the expected answer. Be GENEROUS in your grading:
-- If the student's answer captures the main concept, mark it correct even if wording differs
+TASK: Evaluate each student answer against the expected answer.
+
+GRADING PHILOSOPHY - Be GENEROUS and focus on understanding:
+- If the main concept is captured, mark it correct (even with different wording)
 - Accept partial answers that show understanding
-- Accept synonyms and alternative phrasings
-- Focus on conceptual understanding, not exact wording
+- Accept synonyms, alternative phrasings, and equivalent explanations
+- Focus on conceptual understanding, not exact wording or memorization
+- Give partial credit liberally for partially correct answers
 
-For each question, return:
-- isCorrect: true/false (be generous!)
-- score: 0-100 (give partial credit liberally)
-- feedback: Brief, encouraging feedback explaining why it's correct or what was missing
+OUTPUT FORMAT - Return ONLY a valid JSON object:
+{
+  "grades": [
+    {
+      "questionIndex": 0,
+      "isCorrect": true,
+      "score": 100,
+      "feedback": "Excellent! Your answer correctly identifies..."
+    },
+    {
+      "questionIndex": 1,
+      "isCorrect": false,
+      "score": 60,
+      "feedback": "Good attempt! You got X right, but missed Y..."
+    }
+  ]
+}
 
-Return a JSON object with an array called "grades" containing objects with: questionIndex, isCorrect, score, feedback
+GRADING SCALE:
+- 100: Perfect or excellent answer
+- 80-99: Correct with minor omissions
+- 60-79: Partially correct, shows understanding
+- 40-59: Some correct elements, needs work
+- 20-39: Minimal understanding shown
+- 0-19: Incorrect or no attempt
 
-Only return valid JSON, no markdown.`,
+FEEDBACK RULES:
+- Always start with something positive
+- Be encouraging, not discouraging
+- Explain what was correct
+- Gently explain what was missing (if anything)
+- Keep feedback to 1-2 sentences
+
+CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
         },
         {
           role: 'user',
@@ -85,13 +150,7 @@ Only return valid JSON, no markdown.`,
     // Parse the JSON response
     let grades;
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        grades = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No JSON found in response');
-      }
+      grades = parseJsonResponse<{ grades: Array<{ questionIndex: number; isCorrect: boolean; score: number; feedback: string }> }>(responseText);
     } catch (parseError) {
       console.error('Error parsing AI response:', responseText);
       // Return a default response if parsing fails

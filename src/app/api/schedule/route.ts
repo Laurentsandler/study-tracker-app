@@ -12,6 +12,15 @@ const getSupabaseAdmin = () => {
   return createClient(supabaseUrl, supabaseServiceKey);
 };
 
+// Helper to normalize times - convert midnight (00:00:00) to 23:59:59
+// This handles the edge case where users want a block ending at midnight
+function normalizeEndTime(time: string): string {
+  if (time === '00:00:00' || time === '00:00') {
+    return '23:59:59';
+  }
+  return time;
+}
+
 // GET - Fetch user's weekly schedule blocks
 export async function GET(request: NextRequest) {
   try {
@@ -77,13 +86,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Normalize end time to handle midnight edge case
+    const normalizedEndTime = normalizeEndTime(available_end);
+
     const { data, error } = await supabase
       .from('user_schedule')
       .insert({
         user_id: user.id,
         day_of_week,
         available_start,
-        available_end,
+        available_end: normalizedEndTime,
         label: label || null,
         block_type: block_type || 'study',
         location: location || null,
@@ -139,6 +151,7 @@ export async function PUT(request: NextRequest) {
       const blocksWithUserId = blocks.map(block => ({
         ...block,
         user_id: user.id,
+        available_end: normalizeEndTime(block.available_end),
       }));
 
       const { error } = await supabase

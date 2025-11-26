@@ -15,10 +15,14 @@ import {
   Check,
   X,
   Loader2,
+  Timer,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { Assignment, PlannedTask } from '@/types';
 import { formatDate, getDaysUntilDue, getPriorityColor, getStatusColor } from '@/lib/utils';
+import PomodoroTimer from '@/components/PomodoroTimer';
 
 interface ScheduleSuggestion {
   id: string;
@@ -37,6 +41,8 @@ export default function DashboardPage() {
   const [hasSchedule, setHasSchedule] = useState(false);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [showTimer, setShowTimer] = useState(true);
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -212,14 +218,95 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-500">Welcome back! Here&apos;s your study overview.</p>
         </div>
-        <Link
-          href="/dashboard/assignments/new"
-          className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-        >
-          <Plus className="h-5 w-5" />
-          <span>New Assignment</span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowTimer(!showTimer)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+              showTimer 
+                ? 'bg-red-50 border-red-200 text-red-700' 
+                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            <Timer className="h-5 w-5" />
+            <span className="hidden sm:inline">Pomodoro Timer</span>
+            {showTimer ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+          <Link
+            href="/dashboard/assignments/new"
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            <Plus className="h-5 w-5" />
+            <span>New Assignment</span>
+          </Link>
+        </div>
       </div>
+
+      {/* Pomodoro Timer (Collapsible) */}
+      {showTimer && (
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <PomodoroTimer 
+              assignmentTitle={selectedAssignment?.title}
+              onSessionComplete={(mode, duration) => {
+                console.log(`Completed ${mode} session: ${duration} minutes`);
+              }}
+            />
+          </div>
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl border border-gray-200 h-full">
+              <div className="p-4 border-b border-gray-200">
+                <h3 className="font-medium text-gray-900">Focus on Assignment</h3>
+                <p className="text-sm text-gray-500">Select an assignment to track your study time</p>
+              </div>
+              <div className="p-4 max-h-64 overflow-y-auto">
+                {assignments.length === 0 ? (
+                  <p className="text-center text-gray-500 py-4">No active assignments</p>
+                ) : (
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => setSelectedAssignment(null)}
+                      className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                        !selectedAssignment 
+                          ? 'border-primary-500 bg-primary-50' 
+                          : 'border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="font-medium text-gray-900">General Study</span>
+                      <p className="text-sm text-gray-500">Not tracking a specific assignment</p>
+                    </button>
+                    {assignments.map(assignment => (
+                      <button
+                        key={assignment.id}
+                        onClick={() => setSelectedAssignment(assignment)}
+                        className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                          selectedAssignment?.id === assignment.id 
+                            ? 'border-primary-500 bg-primary-50' 
+                            : 'border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-900">{assignment.title}</span>
+                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getPriorityColor(assignment.priority)}`}>
+                            {assignment.priority}
+                          </span>
+                        </div>
+                        {assignment.course && (
+                          <p className="text-sm text-gray-500">{assignment.course.name}</p>
+                        )}
+                        {assignment.due_date && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            Due: {formatDate(assignment.due_date)}
+                          </p>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* AI Schedule Suggestions Banner */}
       {!hasSchedule && assignments.length > 0 && (

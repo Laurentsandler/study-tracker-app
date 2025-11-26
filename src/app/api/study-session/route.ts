@@ -13,6 +13,20 @@ const getSupabaseAdmin = () => {
   return createClient(supabaseUrl, supabaseServiceKey);
 };
 
+// Get current date context for AI prompts
+function getDateContext(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                      'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  return `Today's date: ${monthNames[now.getMonth()]} ${day}, ${year} (${dayNames[now.getDay()]})
+Current school year: ${month >= 8 ? `${year}-${year + 1}` : `${year - 1}-${year}`}`;
+}
+
 // Helper function to clean and parse JSON from AI response
 function parseJsonResponse<T>(response: string): T {
   let cleaned = response.trim();
@@ -33,6 +47,13 @@ function parseJsonResponse<T>(response: string): T {
   if (jsonMatch) {
     cleaned = jsonMatch[0];
   }
+  
+  // Fix common JSON issues
+  cleaned = cleaned
+    .replace(/,\s*}/g, '}')
+    .replace(/,\s*]/g, ']')
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'");
   
   try {
     return JSON.parse(cleaned);
@@ -87,20 +108,28 @@ export async function POST(request: NextRequest) {
           role: 'system',
           content: `You are an expert in academic curricula, especially College Board AP courses, IB programs, and standard high school/college courses.
 
-Given a study topic, generate a comprehensive list of related subtopics, concepts, and keywords that would help find relevant study materials.
+${getDateContext()}
 
-For example:
-- "Chemistry of Life" (AP Bio Unit 1) → proteins, amino acids, carbohydrates, lipids, nucleic acids, DNA, RNA, enzymes, macromolecules, monomers, polymers, dehydration synthesis, hydrolysis, functional groups, pH, buffers, water properties, hydrogen bonds, organic molecules
-- "Cells" (AP Bio Unit 2) → cell membrane, phospholipid bilayer, organelles, mitochondria, chloroplast, nucleus, ribosomes, endoplasmic reticulum, golgi apparatus, vesicles, cytoskeleton, cell wall, prokaryotes, eukaryotes
-- "World War II" (AP History) → axis powers, allied powers, holocaust, D-Day, Pearl Harbor, atomic bomb, Hitler, Churchill, Roosevelt, Stalin, Treaty of Versailles, fascism, Nazi Germany
-- "Quadratic Functions" (Algebra) → parabola, vertex, axis of symmetry, roots, zeros, factoring, quadratic formula, discriminant, completing the square, standard form, vertex form
+TASK: Given a study topic, generate a comprehensive list of related subtopics, concepts, and keywords that would help find relevant study materials.
 
-Return a JSON object with:
-- relatedTerms: Array of 20-40 related terms, concepts, and keywords (lowercase)
-- broaderContext: Brief description of what this topic covers
-- courseContext: What course/exam this likely relates to (e.g., "AP Biology", "AP US History")
+EXAMPLES:
+- "Chemistry of Life" (AP Bio Unit 1) → proteins, amino acids, carbohydrates, lipids, nucleic acids, DNA, RNA, enzymes, macromolecules, monomers, polymers, dehydration synthesis, hydrolysis, functional groups
+- "World War II" (AP History) → axis powers, allied powers, holocaust, D-Day, Pearl Harbor, atomic bomb, Hitler, Churchill, Roosevelt, fascism
+- "Quadratic Functions" (Algebra) → parabola, vertex, axis of symmetry, roots, zeros, factoring, quadratic formula, discriminant
 
-Only return valid JSON, no markdown.`,
+OUTPUT FORMAT - Return ONLY a valid JSON object:
+{
+  "relatedTerms": ["term1", "term2", ...],
+  "broaderContext": "Brief description of what this topic covers",
+  "courseContext": "What course/exam this relates to (e.g., AP Biology, AP US History)"
+}
+
+REQUIREMENTS:
+- relatedTerms: Array of 20-40 related terms, concepts, keywords (lowercase)
+- Include prerequisites, foundational concepts, and related topics
+- Be inclusive - more terms help find more relevant materials
+
+CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
         },
         {
           role: 'user',
@@ -229,27 +258,34 @@ Only return valid JSON, no markdown.`,
               role: 'system',
               content: `You are helping a student gather ALL potentially useful study materials for an upcoming test or study session.
 
-Your job is to be VERY INCLUSIVE and GENEROUS when selecting materials. When in doubt, INCLUDE IT.
+${getDateContext()}
 
-Include materials that have ANY connection to the topic:
-- Direct mentions of the topic or its subtopics
-- Foundational concepts that support understanding of the topic
-- Prerequisites that would help understand the main topic
-- Related experiments, labs, or hands-on activities
-- Practice problems, worksheets, or homework on related concepts
-- Vocabulary or terminology that might appear in the topic
+TASK: Be VERY INCLUSIVE and GENEROUS when selecting materials. When in doubt, INCLUDE IT.
+
+INCLUDE materials that have ANY connection to the topic:
+- Direct mentions of the topic or subtopics
+- Foundational/prerequisite concepts
+- Related experiments, labs, hands-on activities
+- Practice problems, worksheets, homework
+- Vocabulary or terminology
 - Historical context or real-world applications
-- Cross-curricular connections (e.g., math skills needed for science)
-- Review materials from earlier in the unit/chapter
-- Anything from the same general subject area that could provide context
+- Cross-curricular connections
+- Review materials from the same unit/chapter
+- Anything from the same subject area
 
-REMEMBER: It's better to include something marginally related than to miss something important. Students can always skip irrelevant material, but they can't study from materials they don't have.
+REMEMBER: It's better to include something marginally related than to miss something important.
 
-Return a JSON object with:
+OUTPUT FORMAT - Return ONLY a valid JSON object:
+{
+  "relevantIndices": [0, 1, 2, 3],
+  "reasoning": "Brief explanation of selection criteria"
+}
+
+REQUIREMENTS:
 - relevantIndices: Array of numbers (the indices [0], [1], etc. of materials to include)
-- reasoning: Brief explanation
+- Include ALL materials that could possibly be helpful
 
-Only return valid JSON, no markdown.`,
+CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
             },
             {
               role: 'user',
@@ -335,15 +371,27 @@ ${materialList}`,
           messages: [
             {
               role: 'system',
-              content: `You are a helpful study assistant. Analyze the student's work and create a study plan overview.
-              
-Return a JSON object with:
-- keyTopics: Array of 5-10 key topics/concepts found in the material
-- recommendedFocus: Array of 3-5 areas the student should focus on most
-- estimatedStudyTime: Estimated total study time in minutes
-- summary: A brief 2-3 sentence summary of what this material covers
+              content: `You are a helpful study assistant creating a study plan overview.
 
-Only return valid JSON, no markdown.`,
+${getDateContext()}
+
+TASK: Analyze the student's collected work and create a study plan overview.
+
+OUTPUT FORMAT - Return ONLY a valid JSON object:
+{
+  "keyTopics": ["Topic 1", "Topic 2", ...],
+  "recommendedFocus": ["Focus area 1", "Focus area 2", ...],
+  "estimatedStudyTime": 90,
+  "summary": "Brief 2-3 sentence summary of the material"
+}
+
+REQUIREMENTS:
+- keyTopics: 5-10 key topics/concepts found in the material
+- recommendedFocus: 3-5 areas the student should focus on most
+- estimatedStudyTime: Total study time in minutes (realistic estimate)
+- summary: Concise overview of what the material covers
+
+CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
             },
             {
               role: 'user',

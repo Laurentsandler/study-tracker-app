@@ -9,6 +9,21 @@ const getGroqClient = () => {
   return new Groq({ apiKey });
 };
 
+// Get current date context for AI prompts
+function getDateContext(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                      'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  return `Today's date: ${monthNames[now.getMonth()]} ${day}, ${year} (${dayNames[now.getDay()]})
+Current date in ISO format: ${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}
+Current school year: ${month >= 8 ? `${year}-${year + 1}` : `${year - 1}-${year}`}`;
+}
+
 // Helper function to clean and parse JSON from AI response
 function parseJsonResponse<T>(response: string): T {
   let cleaned = response.trim();
@@ -32,6 +47,13 @@ function parseJsonResponse<T>(response: string): T {
     cleaned = jsonMatch[0];
   }
   
+  // Fix common JSON issues from AI responses
+  cleaned = cleaned
+    .replace(/,\s*}/g, '}')  // Remove trailing commas in objects
+    .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
+    .replace(/[\u201C\u201D]/g, '"')  // Replace smart quotes
+    .replace(/[\u2018\u2019]/g, "'"); // Replace smart apostrophes
+  
   try {
     return JSON.parse(cleaned);
   } catch (error) {
@@ -51,12 +73,25 @@ export async function generateStudyNotes(content: string): Promise<{
     messages: [
       {
         role: 'system',
-        content: `You are a helpful study assistant. Generate concise study notes from the given content. 
-        Return a JSON object with:
-        - summary: A brief 2-3 sentence summary
-        - keyPoints: An array of 5-7 key points
-        - importantTerms: An array of objects with term and definition
-        Only return valid JSON, no markdown.`,
+        content: `You are a helpful study assistant creating study notes for a student.
+
+${getDateContext()}
+
+TASK: Generate concise, well-organized study notes from the provided content.
+
+OUTPUT FORMAT - Return ONLY a valid JSON object with these exact fields:
+{
+  "summary": "A clear 2-3 sentence summary of the main topic",
+  "keyPoints": ["Point 1", "Point 2", ...],
+  "importantTerms": [{"term": "Term1", "definition": "Definition1"}, ...]
+}
+
+REQUIREMENTS:
+- summary: 2-3 sentences capturing the main ideas
+- keyPoints: Array of 5-7 key points (strings only)
+- importantTerms: Array of 5-10 vocabulary terms with clear definitions
+
+CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
       },
       {
         role: 'user',
@@ -81,11 +116,32 @@ export async function generateStudyGuide(content: string): Promise<{
     messages: [
       {
         role: 'system',
-        content: `You are a helpful study assistant. Generate a comprehensive study guide from the given content.
-        Return a JSON object with:
-        - sections: An array of objects with title, content (detailed explanation), and keyTakeaways (array of strings)
-        - reviewQuestions: An array of 5-10 review questions
-        Only return valid JSON, no markdown.`,
+        content: `You are a helpful study assistant creating a comprehensive study guide.
+
+${getDateContext()}
+
+TASK: Generate a well-structured study guide from the provided content.
+
+OUTPUT FORMAT - Return ONLY a valid JSON object with these exact fields:
+{
+  "sections": [
+    {
+      "title": "Section Title",
+      "content": "Detailed explanation paragraph",
+      "keyTakeaways": ["Takeaway 1", "Takeaway 2", "Takeaway 3"]
+    }
+  ],
+  "reviewQuestions": ["Question 1?", "Question 2?", ...]
+}
+
+REQUIREMENTS:
+- sections: 3-6 logical sections covering all major topics
+  - title: Clear section heading
+  - content: 2-4 paragraph detailed explanation
+  - keyTakeaways: Array of 2-4 bullet points per section
+- reviewQuestions: Array of 5-10 review questions for self-testing
+
+CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
       },
       {
         role: 'user',
@@ -116,16 +172,49 @@ export async function generatePracticeTest(content: string): Promise<{
     messages: [
       {
         role: 'system',
-        content: `You are a helpful study assistant. Generate a practice test from the given content.
-        Return a JSON object with:
-        - questions: An array of 10-15 question objects with:
-          - id: unique identifier (q1, q2, etc.)
-          - question: the question text
-          - type: "multiple_choice", "short_answer", or "true_false"
-          - options: array of 4 choices (only for multiple_choice)
-          - correctAnswer: the correct answer
-          - explanation: brief explanation of why this is correct
-        Only return valid JSON, no markdown.`,
+        content: `You are a helpful study assistant creating a practice test.
+
+${getDateContext()}
+
+TASK: Generate a varied practice test from the provided content.
+
+OUTPUT FORMAT - Return ONLY a valid JSON object with this exact structure:
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "What is...?",
+      "type": "multiple_choice",
+      "options": ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"],
+      "correctAnswer": "A",
+      "explanation": "The answer is A because..."
+    },
+    {
+      "id": "q2",
+      "question": "Explain the concept of...",
+      "type": "short_answer",
+      "correctAnswer": "The expected answer includes...",
+      "explanation": "This tests understanding of..."
+    },
+    {
+      "id": "q3",
+      "question": "True or False: Statement here",
+      "type": "true_false",
+      "correctAnswer": "True",
+      "explanation": "This is true because..."
+    }
+  ]
+}
+
+REQUIREMENTS:
+- Generate 10-15 questions total
+- Mix of question types: ~6 multiple_choice, ~4 short_answer, ~3 true_false
+- Each question MUST have: id, question, type, correctAnswer, explanation
+- Multiple choice questions MUST have "options" array with exactly 4 choices (A, B, C, D)
+- correctAnswer for multiple_choice should be just the letter (A, B, C, or D)
+- IDs should be sequential: q1, q2, q3, etc.
+
+CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
       },
       {
         role: 'user',
@@ -149,13 +238,37 @@ export async function generateFlashcards(content: string): Promise<{
     messages: [
       {
         role: 'system',
-        content: `You are a helpful study assistant. Generate flashcards from the given content.
-        Return a JSON object with:
-        - cards: An array of 15-25 flashcard objects with:
-          - id: unique identifier (card1, card2, etc.)
-          - front: the question or term
-          - back: the answer or definition
-        Only return valid JSON, no markdown.`,
+        content: `You are a helpful study assistant creating flashcards for effective studying.
+
+${getDateContext()}
+
+TASK: Generate high-quality flashcards from the provided content.
+
+OUTPUT FORMAT - Return ONLY a valid JSON object with this exact structure:
+{
+  "cards": [
+    {"id": "card1", "front": "Question or term", "back": "Answer or definition"},
+    {"id": "card2", "front": "What is X?", "back": "X is..."},
+    ...
+  ]
+}
+
+REQUIREMENTS:
+- Generate 15-25 flashcards
+- Each card MUST have: id, front, back
+- IDs should be: card1, card2, card3, etc.
+- "front": The question, term, or concept (keep concise)
+- "back": The answer, definition, or explanation (clear and complete)
+
+CARD TYPES TO INCLUDE:
+- Vocabulary definitions
+- Key concepts and explanations
+- Important facts and dates
+- Cause and effect relationships
+- Compare/contrast items
+- Process steps or sequences
+
+CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
       },
       {
         role: 'user',
@@ -185,6 +298,9 @@ export async function parseAssignmentText(
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
   const currentDay = currentDate.getDate();
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                      'July', 'August', 'September', 'October', 'November', 'December'];
   
   // Build context about the source
   let sourceContext = '';
@@ -193,9 +309,9 @@ export async function parseAssignmentText(
                          source.fileType?.includes('word') || source.fileName.endsWith('.docx') ? 'Word document' :
                          source.fileName.endsWith('.txt') ? 'text file' :
                          source.fileName.endsWith('.md') ? 'Markdown file' : 'document';
-    sourceContext = `The user has uploaded a ${fileTypeDesc} named "${source.fileName}". The following text was extracted from this document. `;
+    sourceContext = `SOURCE: The text was extracted from a ${fileTypeDesc} named "${source.fileName}".`;
   } else if (source?.type === 'text') {
-    sourceContext = 'The user has manually entered or pasted the following text about an assignment. ';
+    sourceContext = 'SOURCE: The user manually entered or pasted this text.';
   }
   
   const completion = await groq.chat.completions.create({
@@ -203,32 +319,59 @@ export async function parseAssignmentText(
     messages: [
       {
         role: 'system',
-        content: `You are an intelligent assistant that extracts assignment details from text provided by students.
+        content: `You are an intelligent assistant that extracts assignment details from student-provided text.
 
-Today's date: ${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}
-Current year: ${currentYear}
+CURRENT DATE CONTEXT:
+- Today: ${monthNames[currentMonth - 1]} ${currentDay}, ${currentYear} (${dayNames[currentDate.getDay()]})
+- ISO Format: ${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}
+- Current Year: ${currentYear}
+- School Year: ${currentMonth >= 8 ? `${currentYear}-${currentYear + 1}` : `${currentYear - 1}-${currentYear}`}
 
-Your task: Parse the provided text and extract assignment information into a structured format.
+TASK: Parse the provided text and extract assignment information.
 
-IMPORTANT GUIDELINES:
-1. TITLE: Create a clear, concise title (e.g., "Chapter 5 Math Homework", "History Essay on WWII"). If the text is from a syllabus or course document, identify the specific assignment.
-2. DESCRIPTION: Include all relevant details like instructions, requirements, topics covered, page numbers, questions to complete, etc.
-3. DUE DATE: 
-   - Parse any mentioned dates into YYYY-MM-DD format
-   - If no year specified, use ${currentYear}
-   - If that date has passed, use ${currentYear + 1}
-   - Return null if no due date is found
-4. PRIORITY: Determine based on:
-   - "high": urgent, important, exam, midterm, final, major project, worth high percentage
+OUTPUT FORMAT - Return ONLY a valid JSON object with these exact fields:
+{
+  "title": "Clear, concise assignment title",
+  "description": "All relevant details, instructions, requirements",
+  "due_date": "YYYY-MM-DD or null",
+  "priority": "low|medium|high",
+  "estimated_duration": 60
+}
+
+EXTRACTION RULES:
+1. TITLE: Create a descriptive title (e.g., "Chapter 5 Math Homework", "WWII Essay")
+   - If from a syllabus, identify the specific assignment name
+   
+2. DESCRIPTION: Include ALL relevant details:
+   - Instructions and requirements
+   - Page numbers, question numbers
+   - Word counts, formatting requirements
+   - Any special notes or restrictions
+
+3. DUE DATE:
+   - Parse any date mentioned into YYYY-MM-DD format
+   - If only day/month given, assume year ${currentYear}
+   - If that date has already passed, use ${currentYear + 1}
+   - "next Monday" = calculate from today
+   - "Friday" without date = the coming Friday
+   - Return null if no due date is mentioned
+
+4. PRIORITY:
+   - "high": exams, finals, midterms, major projects, high grade weight
    - "medium": regular homework, quizzes, standard assignments
-   - "low": optional, extra credit, practice, not graded
-5. ESTIMATED DURATION: Estimate completion time in minutes based on assignment type and scope (default: 60)
+   - "low": extra credit, practice, optional, ungraded
 
-Return ONLY a valid JSON object with these fields: title, description, due_date, priority, estimated_duration`,
+5. ESTIMATED_DURATION: Time in minutes to complete
+   - Short worksheet: 15-30 min
+   - Regular homework: 30-60 min
+   - Essay/project: 60-180 min
+   - Major project: 180+ min
+
+CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
       },
       {
         role: 'user',
-        content: `${sourceContext}Please extract the assignment details from this content:\n\n${rawText}`,
+        content: `${sourceContext ? sourceContext + '\n\n' : ''}Please extract assignment details from this content:\n\n${rawText}`,
       },
     ],
     temperature: 0.2,

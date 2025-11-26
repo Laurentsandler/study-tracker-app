@@ -32,12 +32,33 @@ function parseJsonResponse<T>(response: string): T {
     cleaned = jsonMatch[0];
   }
   
+  // Fix common JSON issues
+  cleaned = cleaned
+    .replace(/,\s*}/g, '}')
+    .replace(/,\s*]/g, ']')
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'");
+  
   try {
     return JSON.parse(cleaned);
   } catch (error) {
     console.error('Failed to parse JSON response:', cleaned);
     throw new Error('Failed to parse AI response as JSON');
   }
+}
+
+// Get current date context
+function getDateContext(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                      'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  return `Today: ${monthNames[now.getMonth()]} ${day}, ${year} (${dayNames[now.getDay()]})
+ISO: ${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -52,9 +73,6 @@ export async function POST(request: NextRequest) {
     }
 
     const groq = getGroqClient();
-    
-    const currentDate = new Date();
-    const dateStr = currentDate.toISOString().split('T')[0];
 
     const completion = await groq.chat.completions.create({
       model: 'meta-llama/llama-4-scout-17b-16e-instruct',
@@ -64,42 +82,47 @@ export async function POST(request: NextRequest) {
           content: [
             {
               type: 'text',
-              text: `You are an intelligent assistant that extracts information from photos of student classwork, homework, notes, or assignments.
+              text: `You are an intelligent assistant that extracts information from photos of student schoolwork.
 
-Today's date: ${dateStr}
+CURRENT DATE: ${getDateContext()}
 
-The user has taken a photo of their completed schoolwork. This is likely HANDWRITTEN content, so please be extra careful when reading and transcribing it. Handwriting can be messy, so do your best to interpret the text accurately.
+TASK: Analyze this photo of completed schoolwork and extract ALL visible information.
 
-Your task: Analyze this image and extract ALL information you can see.
+IMPORTANT - This is likely HANDWRITTEN content:
+- Be extra careful when reading handwriting
+- Do your best to interpret messy handwriting
+- Include "[unclear]" if text is unreadable
 
-IMPORTANT GUIDELINES:
-1. TITLE: Create a descriptive title based on the content (e.g., "Math Chapter 5 Problems", "History Notes on Civil War", "Biology Lab Report")
-2. TOPIC: Identify the main subject/topic (e.g., "Algebra", "World War II", "Photosynthesis")
-3. CONTENT: Transcribe ALL the visible text/content from the image as accurately as possible. Include:
-   - All written text
-   - Math problems and their solutions
-   - Diagrams described in text
-   - Any notes or annotations
-4. DATE_COMPLETED: If you see a date on the paper, extract it in YYYY-MM-DD format. Otherwise use null.
-5. WORKLOG_TYPE: Determine the type of work:
-   - "classwork": Work done during class
-   - "homework": Work assigned to do at home
-   - "notes": Class notes or study notes
-   - "quiz": Quiz or short test
-   - "test": Exam or major test
-   - "project": Project work
-   - "other": Anything else
-6. DESCRIPTION: A brief 1-2 sentence summary of what this work contains
-
-Return ONLY a valid JSON object with these fields:
+OUTPUT FORMAT - Return ONLY a valid JSON object:
 {
-  "title": "string",
-  "topic": "string", 
-  "content": "string (full transcription of all visible text)",
+  "title": "Descriptive title based on content",
+  "topic": "Main subject/topic",
+  "content": "Full transcription of ALL visible text",
   "date_completed": "YYYY-MM-DD or null",
   "worklog_type": "classwork|homework|notes|quiz|test|project|other",
-  "description": "string"
-}`,
+  "description": "1-2 sentence summary"
+}
+
+FIELD GUIDELINES:
+1. TITLE: Create a descriptive title (e.g., "Math Chapter 5 Problems", "Biology Lab Report")
+2. TOPIC: Main subject (e.g., "Algebra", "World War II", "Photosynthesis")
+3. CONTENT: Transcribe ALL visible text including:
+   - Written text and answers
+   - Math problems and solutions
+   - Diagrams described in text
+   - Notes, annotations, corrections
+4. DATE_COMPLETED: Extract any date visible, format as YYYY-MM-DD, or null
+5. WORKLOG_TYPE: Choose the best match:
+   - "classwork": Done during class
+   - "homework": Assigned for home
+   - "notes": Class or study notes
+   - "quiz": Short quiz
+   - "test": Major exam
+   - "project": Project work
+   - "other": Anything else
+6. DESCRIPTION: Brief summary of the work
+
+CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
             },
             {
               type: 'image_url',

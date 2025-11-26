@@ -239,7 +239,7 @@ export default function WorklogDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         {/* Details */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Topic */}
           {worklog.topic && (
             <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -252,9 +252,24 @@ export default function WorklogDetailPage({ params }: { params: Promise<{ id: st
           {worklog.description && (
             <div className="bg-white rounded-xl border border-gray-200 p-4">
               <h3 className="text-sm font-medium text-gray-500 mb-2">Description</h3>
-              <p className="text-gray-700">{worklog.description}</p>
+              <p className="text-gray-900">{worklog.description}</p>
             </div>
           )}
+
+          {/* Info Cards */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <h3 className="text-sm font-medium text-gray-500 mb-1">Type</h3>
+              <div className="flex items-center gap-2">
+                <TypeIcon className="w-4 h-4 text-gray-600" />
+                <span className="text-gray-900 font-medium">{worklogTypeLabels[worklog.worklog_type]}</span>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <h3 className="text-sm font-medium text-gray-500 mb-1">Completed</h3>
+              <p className="text-gray-900 font-medium">{formatDate(worklog.date_completed).split(',')[0]}</p>
+            </div>
+          </div>
 
           {/* Generate Study Materials */}
           {worklog.content && (
@@ -267,13 +282,13 @@ export default function WorklogDetailPage({ params }: { params: Promise<{ id: st
                 Generate AI-powered study materials from this work
               </p>
               <div className="flex flex-wrap gap-2">
-                <button className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                <button className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                   Generate Notes
                 </button>
-                <button className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                <button className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                   Create Flashcards
                 </button>
-                <button className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                <button className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                   Practice Test
                 </button>
               </div>
@@ -286,11 +301,19 @@ export default function WorklogDetailPage({ params }: { params: Promise<{ id: st
       {worklog.content && (
         <div className="mt-6 bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Extracted Content</h3>
-          <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm whitespace-pre-wrap text-gray-700">
+          <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm whitespace-pre-wrap text-gray-900 border border-gray-200">
             {worklog.content}
           </div>
         </div>
       )}
+
+      {/* Metadata */}
+      <div className="mt-6 text-sm text-gray-500 flex items-center justify-between">
+        <span>Created {new Date(worklog.created_at).toLocaleDateString()}</span>
+        {worklog.updated_at !== worklog.created_at && (
+          <span>Last updated {new Date(worklog.updated_at).toLocaleDateString()}</span>
+        )}
+      </div>
     </div>
   );
 }

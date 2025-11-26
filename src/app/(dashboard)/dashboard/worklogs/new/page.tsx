@@ -340,7 +340,7 @@ export default function NewWorklogPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., Math Chapter 5 Problems"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400"
               required
             />
           </div>
@@ -355,7 +355,7 @@ export default function NewWorklogPage() {
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g., Algebra, World History"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400"
             />
           </div>
 
@@ -368,7 +368,7 @@ export default function NewWorklogPage() {
               <select
                 value={worklogType}
                 onChange={(e) => setWorklogType(e.target.value as WorklogType)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900"
               >
                 {worklogTypes.map((type) => (
                   <option key={type.value} value={type.value}>
@@ -385,7 +385,7 @@ export default function NewWorklogPage() {
                 type="date"
                 value={dateCompleted}
                 onChange={(e) => setDateCompleted(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900"
               />
             </div>
           </div>
@@ -400,7 +400,7 @@ export default function NewWorklogPage() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of the work..."
               rows={2}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none bg-white text-gray-900 placeholder-gray-400"
             />
           </div>
 
@@ -414,7 +414,7 @@ export default function NewWorklogPage() {
               onChange={(e) => setContent(e.target.value)}
               placeholder="The full content extracted from your work..."
               rows={6}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none font-mono text-sm"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none font-mono text-sm bg-white text-gray-900 placeholder-gray-400"
             />
             <p className="mt-1 text-xs text-gray-500">
               This content will be used for generating study materials and test prep

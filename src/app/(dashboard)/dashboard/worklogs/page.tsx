@@ -136,7 +136,7 @@ export default function WorklogsPage() {
             placeholder="Search worklogs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400"
           />
         </div>
         <div className="relative">
@@ -144,7 +144,7 @@ export default function WorklogsPage() {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as WorklogType | 'all')}
-            className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white"
+            className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none bg-white text-gray-900"
           >
             <option value="all">All Types</option>
             {Object.entries(worklogTypeLabels).map(([value, label]) => (

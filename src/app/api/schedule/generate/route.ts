@@ -163,20 +163,36 @@ CURRENT DATE CONTEXT:
 
 TASK: Create an optimal study schedule based on the student's availability and assignments.
 
-INPUT DATA:
-1. Weekly availability - recurring time blocks showing when student is available
-2. Pending assignments - with due dates, priorities, and estimated duration
-3. Already scheduled tasks - to avoid conflicts
+SCHEDULING PRIORITY ORDER (IMPORTANT - use this order):
+1. FIRST: Use "study" blocks during weekdays (Mon-Fri) - these are dedicated study periods at school like study hall, free periods, library time
+2. SECOND: Use "free" blocks during weekdays - lunch breaks, gaps between classes
+3. THIRD: Use "study" blocks after school on weekdays (typically 3pm-6pm)
+4. FOURTH: Use weekend "study" and "free" blocks
+5. LAST RESORT: Evening time blocks
+
+WHY THIS ORDER MATTERS:
+- Students are already in "study mode" at school - capitalize on this!
+- It's easier to focus during school hours with fewer distractions
+- Keeps evenings and weekends more free for rest and activities
+- Assignments done at school = less homework stress at home
 
 SCHEDULING RULES:
-1. Schedule study sessions BEFORE due dates (ideally 1-2 days before)
-2. Only use "study" and "free" time blocks for study sessions
-3. NEVER schedule during "class" or "work" blocks
-4. Break assignments >90 minutes into multiple sessions
-5. High priority items should be scheduled first
-6. Leave buffer time - don't schedule back-to-back
-7. Match session length to estimated duration
-8. Suggest locations based on the schedule block's location
+1. Schedule study sessions BEFORE due dates (ideally 1-2 days before, or same day if due soon)
+2. ACTIVELY USE school-time study blocks - don't skip them!
+3. "study" type blocks are PERFECT for assignments - use them aggressively
+4. "free" type blocks can also be used for studying
+5. NEVER schedule during "class" or "work" blocks
+6. Break assignments >90 minutes into multiple sessions across different days
+7. High priority and soon-due items get the BEST time slots (school study blocks)
+8. Match session length to estimated duration (don't over-schedule)
+9. Spread work across the week - don't cram everything into weekends
+
+BLOCK TYPE MEANINGS:
+- "study": Dedicated study time (study hall, library period, tutoring) - USE THESE FIRST!
+- "free": Free periods, lunch, breaks - good for shorter tasks
+- "class": Classes in session - NEVER schedule here
+- "work": Job/employment - NEVER schedule here
+- "other": Miscellaneous - check label before using
 
 OUTPUT FORMAT - Return ONLY a valid JSON object:
 {
@@ -187,24 +203,25 @@ OUTPUT FORMAT - Return ONLY a valid JSON object:
       "date": "YYYY-MM-DD",
       "startTime": "HH:MM",
       "endTime": "HH:MM",
-      "reason": "Brief explanation",
-      "location": "suggested location"
+      "reason": "Brief explanation of why this time slot",
+      "location": "suggested location from schedule"
     }
   ],
-  "insights": "A paragraph with study tips and workload analysis"
+  "insights": "A paragraph with study tips, workload analysis, and encouragement"
 }
 
 VALIDATION:
-- assignmentId MUST match an ID from the assignments list
+- assignmentId MUST match an ID from the assignments list exactly
 - date MUST be in YYYY-MM-DD format within the planning period
 - startTime and endTime MUST be in HH:MM format (24-hour)
-- All suggestions must fit within available time blocks
+- All suggestions must fit within available time blocks for that day of week
+- Prefer earlier dates over later dates when possible
 
 CRITICAL: Return ONLY valid JSON. No markdown, no extra text, no code blocks.`,
         },
         {
           role: 'user',
-          content: `Please create a study schedule for the next 2 weeks.
+          content: `Please create a study schedule for the next 2 weeks. PRIORITIZE using study blocks during school hours before using after-school or weekend time.
 
 WEEKLY AVAILABILITY:
 ${JSON.stringify(formattedSchedule, null, 2)}

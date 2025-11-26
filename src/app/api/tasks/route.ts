@@ -35,6 +35,8 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate');
     const date = searchParams.get('date');
 
+    console.log('GET /api/tasks - params:', { startDate, endDate, date, userId: user.id });
+
     let query = supabase
       .from('planned_tasks')
       .select('*, assignment:assignments(*, course:courses(*))')
@@ -54,6 +56,8 @@ export async function GET(request: NextRequest) {
       console.error('Error fetching planned tasks:', error);
       return NextResponse.json({ error: 'Failed to fetch planned tasks' }, { status: 500 });
     }
+
+    console.log('GET /api/tasks - found tasks:', data?.length || 0, data?.map(t => ({ id: t.id, date: t.scheduled_date, start: t.scheduled_start })));
 
     return NextResponse.json(data);
   } catch (error) {

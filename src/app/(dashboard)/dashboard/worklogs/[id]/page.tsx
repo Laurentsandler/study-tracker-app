@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ArrowLeft, 
@@ -51,9 +51,10 @@ const worklogTypeColors: Record<WorklogType, string> = {
   other: 'bg-gray-100 text-gray-700',
 };
 
-export default function WorklogDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function WorklogDetailPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
   const [worklog, setWorklog] = useState<Worklog | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);

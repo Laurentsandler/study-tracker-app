@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { 
   ArrowLeft, 
   Loader2,
@@ -27,9 +27,10 @@ const worklogTypes: { value: WorklogType; label: string; icon: typeof FileText }
   { value: 'other', label: 'Other', icon: FolderOpen },
 ];
 
-export default function EditWorklogPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function EditWorklogPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
   
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);

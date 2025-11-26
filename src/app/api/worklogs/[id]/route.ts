@@ -49,6 +49,17 @@ export async function GET(
       return NextResponse.json({ error: 'Worklog not found' }, { status: 404 });
     }
 
+    // Generate signed URL for image if storage_path exists
+    if (worklog.storage_path) {
+      const { data: signedUrlData } = await supabase.storage
+        .from('worklog-images')
+        .createSignedUrl(worklog.storage_path, 3600); // 1 hour expiry
+      
+      if (signedUrlData?.signedUrl) {
+        worklog.image_url = signedUrlData.signedUrl;
+      }
+    }
+
     return NextResponse.json({ worklog });
   } catch (error) {
     console.error('Error in worklog GET:', error);

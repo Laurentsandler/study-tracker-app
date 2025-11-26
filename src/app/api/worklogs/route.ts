@@ -44,7 +44,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch worklogs' }, { status: 500 });
     }
 
-    return NextResponse.json({ worklogs });
+    // Generate signed URLs for images
+    const worklogsWithSignedUrls = await Promise.all(
+      worklogs.map(async (worklog) => {
+        if (worklog.storage_path) {
+          const { data: signedUrlData } = await supabase.storage
+            .from('worklog-images')
+            .createSignedUrl(worklog.storage_path, 3600); // 1 hour expiry
+          
+          if (signedUrlData?.signedUrl) {
+            return { ...worklog, image_url: signedUrlData.signedUrl };
+          }
+        }
+        return worklog;
+      })
+    );
+
+    return NextResponse.json({ worklogs: worklogsWithSignedUrls });
   } catch (error) {
     console.error('Error in worklogs GET:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

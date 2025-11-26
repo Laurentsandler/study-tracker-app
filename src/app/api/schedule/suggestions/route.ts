@@ -77,11 +77,16 @@ export async function POST(request: NextRequest) {
 
     if (action === 'acceptAll') {
       // Get all pending suggestions
-      const { data: suggestions } = await supabase
+      const { data: suggestions, error: fetchError } = await supabase
         .from('schedule_suggestions')
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'pending');
+
+      if (fetchError) {
+        console.error('Error fetching suggestions:', fetchError);
+        return NextResponse.json({ error: 'Failed to fetch suggestions' }, { status: 500 });
+      }
 
       if (suggestions && suggestions.length > 0) {
         // Create planned tasks from all suggestions
@@ -96,17 +101,35 @@ export async function POST(request: NextRequest) {
           task_type: 'assignment',
         }));
 
-        await supabase.from('planned_tasks').insert(tasks);
+        console.log('Creating tasks from suggestions:', tasks);
+
+        const { data: insertedTasks, error: insertError } = await supabase
+          .from('planned_tasks')
+          .insert(tasks)
+          .select();
+
+        if (insertError) {
+          console.error('Error creating tasks:', insertError);
+          return NextResponse.json({ error: 'Failed to create tasks', details: insertError }, { status: 500 });
+        }
+
+        console.log('Tasks created successfully:', insertedTasks);
 
         // Mark all as accepted
-        await supabase
+        const { error: updateError } = await supabase
           .from('schedule_suggestions')
           .update({ status: 'accepted' })
           .eq('user_id', user.id)
           .eq('status', 'pending');
+
+        if (updateError) {
+          console.error('Error updating suggestion statuses:', updateError);
+        }
+
+        return NextResponse.json({ success: true, action: 'acceptAll', tasksCreated: insertedTasks?.length || 0 });
       }
 
-      return NextResponse.json({ success: true, action: 'acceptAll' });
+      return NextResponse.json({ success: true, action: 'acceptAll', tasksCreated: 0 });
     }
 
     if (action === 'dismissAll') {
@@ -133,7 +156,15 @@ export async function POST(request: NextRequest) {
 
     if (action === 'accept') {
       // Create a planned task from the suggestion
-      const { error: taskError } = await supabase
+      console.log('Creating planned task from suggestion:', {
+        user_id: user.id,
+        assignment_id: suggestion.assignment_id,
+        scheduled_date: suggestion.suggested_date,
+        scheduled_start: suggestion.suggested_start,
+        scheduled_end: suggestion.suggested_end,
+      });
+
+      const { data: taskData, error: taskError } = await supabase
         .from('planned_tasks')
         .insert({
           user_id: user.id,
@@ -144,20 +175,28 @@ export async function POST(request: NextRequest) {
           notes: suggestion.reason,
           ai_generated: true,
           task_type: 'assignment',
-        });
+        })
+        .select()
+        .single();
 
       if (taskError) {
         console.error('Error creating task:', taskError);
-        return NextResponse.json({ error: 'Failed to create task' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to create task', details: taskError }, { status: 500 });
       }
 
+      console.log('Task created successfully:', taskData);
+
       // Mark suggestion as accepted
-      await supabase
+      const { error: updateError } = await supabase
         .from('schedule_suggestions')
         .update({ status: 'accepted' })
         .eq('id', suggestionId);
 
-      return NextResponse.json({ success: true, action: 'accept' });
+      if (updateError) {
+        console.error('Error updating suggestion status:', updateError);
+      }
+
+      return NextResponse.json({ success: true, action: 'accept', task: taskData });
     }
 
     if (action === 'dismiss') {

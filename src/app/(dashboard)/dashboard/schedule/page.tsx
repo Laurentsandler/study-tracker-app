@@ -400,13 +400,30 @@ export default function SchedulePage() {
             </button>
           </div>
 
+          {/* Legend */}
+          {suggestions.length > 0 && (
+            <div className="px-4 py-2 bg-purple-50 border-b border-purple-100 flex items-center gap-4 text-xs">
+              <span className="text-purple-700 font-medium">Legend:</span>
+              <span className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded bg-purple-200 border-2 border-dashed border-purple-400"></span>
+                AI Suggestion (click to accept)
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded bg-purple-100 border border-purple-200"></span>
+                Scheduled Task
+              </span>
+            </div>
+          )}
+
           {/* Week Grid */}
           <div className="grid grid-cols-7 divide-x divide-gray-200">
             {getWeekDates().map((date, i) => {
+              const dateStr = date.toISOString().split('T')[0];
               const dayTasks = plannedTasks.filter(
-                t => t.scheduled_date === date.toISOString().split('T')[0]
+                t => t.scheduled_date === dateStr
               );
               const dayBlocks = scheduleBlocks.filter(b => b.day_of_week === date.getDay());
+              const daySuggestions = suggestions.filter(s => s.suggested_date === dateStr);
               const isToday = date.toDateString() === new Date().toDateString();
 
               return (
@@ -466,11 +483,81 @@ export default function SchedulePage() {
                         )}
                       </div>
                     ))}
+                    {/* AI Suggestions (pending - shown as dashed) */}
+                    {daySuggestions.map(suggestion => (
+                      <div
+                        key={suggestion.id}
+                        className="text-xs p-1.5 rounded border-2 border-dashed border-purple-300 bg-purple-50/50 cursor-pointer hover:bg-purple-100 hover:border-purple-400 transition-all group"
+                        onClick={() => handleSuggestionAction(suggestion.id, 'accept')}
+                        title="Click to accept this suggestion"
+                      >
+                        <div className="flex items-start justify-between">
+                          <p className="font-medium truncate flex-1 text-purple-700">
+                            {suggestion.assignment?.title || 'Study'}
+                          </p>
+                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSuggestionAction(suggestion.id, 'accept');
+                              }}
+                              className="text-green-600 hover:text-green-700"
+                              title="Accept"
+                            >
+                              <Check className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSuggestionAction(suggestion.id, 'dismiss');
+                              }}
+                              className="text-red-500 hover:text-red-600"
+                              title="Dismiss"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-purple-600">
+                          {formatTime(suggestion.suggested_start)} - {formatTime(suggestion.suggested_end)}
+                        </p>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Sparkles className="h-3 w-3 text-purple-500" />
+                          <span className="text-[9px] text-purple-500 font-medium">AI Suggested</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
             })}
           </div>
+
+          {/* Quick Actions Bar */}
+          {suggestions.length > 0 && (
+            <div className="p-3 bg-purple-50 border-t border-purple-100 flex items-center justify-between">
+              <p className="text-sm text-purple-700">
+                <Sparkles className="h-4 w-4 inline mr-1" />
+                {suggestions.length} AI suggestion{suggestions.length !== 1 ? 's' : ''} pending
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleBulkAction('acceptAll')}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-xs font-medium"
+                >
+                  <Check className="h-3 w-3" />
+                  Accept All
+                </button>
+                <button
+                  onClick={() => handleBulkAction('dismissAll')}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-white text-red-600 border border-red-200 rounded-lg hover:bg-red-50 text-xs font-medium"
+                >
+                  <X className="h-3 w-3" />
+                  Dismiss All
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -121,7 +121,7 @@ export default function EditAssignmentPage() {
   if (fetching) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black" />
       </div>
     );
   }
@@ -132,27 +132,27 @@ export default function EditAssignmentPage() {
       <div className="mb-8">
         <Link
           href={`/dashboard/assignments/${assignmentId}`}
-          className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-4"
+          className="inline-flex items-center gap-2 text-gray-700 hover:text-black font-bold mb-4"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to assignment
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Edit Assignment</h1>
-        <p className="text-gray-500">Update the assignment details below</p>
+        <h1 className="text-3xl font-black text-black">Edit Assignment</h1>
+        <p className="text-gray-600 font-medium">Update the assignment details below</p>
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700">
+        <div className="mb-6 p-4 bg-red-200 border-3 border-black flex items-center gap-3 text-black">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
-          <span className="text-sm">{error}</span>
+          <span className="text-sm font-bold">{error}</span>
         </div>
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-6 border-3 border-black shadow-[4px_4px_0_0_#000] space-y-6">
         {/* Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="title" className="block text-sm font-bold text-black mb-2">
             Title *
           </label>
           <input
@@ -160,16 +160,16 @@ export default function EditAssignmentPage() {
             type="text"
             id="title"
             placeholder="e.g., Chapter 5 Homework"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
+            className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
           />
           {errors.title && (
-            <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+            <p className="text-red-600 text-sm mt-1 font-bold">{errors.title.message}</p>
           )}
         </div>
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="description" className="block text-sm font-bold text-black mb-2">
             Description
           </label>
           <textarea
@@ -177,19 +177,19 @@ export default function EditAssignmentPage() {
             id="description"
             rows={4}
             placeholder="Add details about this assignment..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none text-gray-900 bg-white"
+            className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none resize-none text-black bg-white font-medium"
           />
         </div>
 
         {/* Course */}
         <div>
-          <label htmlFor="course_id" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="course_id" className="block text-sm font-bold text-black mb-2">
             Course
           </label>
           <select
             {...register('course_id')}
             id="course_id"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
+            className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
           >
             <option value="">Select a course</option>
             {courses.map((course) => (
@@ -203,25 +203,25 @@ export default function EditAssignmentPage() {
         {/* Due Date & Priority */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="due_date" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="due_date" className="block text-sm font-bold text-black mb-2">
               Due Date
             </label>
             <input
               {...register('due_date')}
               type="date"
               id="due_date"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
+              className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
             />
           </div>
 
           <div>
-            <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="priority" className="block text-sm font-bold text-black mb-2">
               Priority
             </label>
             <select
               {...register('priority')}
               id="priority"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
+              className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
@@ -232,13 +232,13 @@ export default function EditAssignmentPage() {
 
         {/* Status */}
         <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="status" className="block text-sm font-bold text-black mb-2">
             Status
           </label>
           <select
             {...register('status')}
             id="status"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
+            className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
           >
             <option value="pending">Pending</option>
             <option value="in_progress">In Progress</option>
@@ -248,7 +248,7 @@ export default function EditAssignmentPage() {
 
         {/* Estimated Duration */}
         <div>
-          <label htmlFor="estimated_duration" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="estimated_duration" className="block text-sm font-bold text-black mb-2">
             Estimated Duration (minutes)
           </label>
           <input
@@ -256,7 +256,7 @@ export default function EditAssignmentPage() {
             type="number"
             id="estimated_duration"
             min={1}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
+            className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
           />
         </div>
 
@@ -265,18 +265,18 @@ export default function EditAssignmentPage() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex-1 py-3 bg-gray-200 border-3 border-black text-black font-bold shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading || !isDirty}
-            className="flex-1 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className="flex-1 py-3 bg-yellow-300 border-3 border-black text-black font-bold shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black" />
                 Saving...
               </>
             ) : (

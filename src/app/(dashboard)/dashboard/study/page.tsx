@@ -233,12 +233,12 @@ export default function HelpMeStudyPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl">
-            <Sparkles className="w-6 h-6 text-white" />
+          <div className="p-3 bg-violet-300 border-3 border-black shadow-[4px_4px_0_0_#000]">
+            <Sparkles className="w-6 h-6 text-black" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Help Me Study</h1>
+          <h1 className="text-3xl font-black text-black">🧠 Help Me Study</h1>
         </div>
-        <p className="text-gray-600">
+        <p className="text-gray-700 font-medium">
           Gather your work and generate personalized study materials for any topic or unit
         </p>
       </div>
@@ -248,28 +248,28 @@ export default function HelpMeStudyPage() {
         {['config', 'review', 'materials'].map((s, i) => (
           <div key={s} className="flex items-center">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+              className={`w-10 h-10 border-3 border-black flex items-center justify-center text-sm font-black transition-colors ${
                 step === s
-                  ? 'bg-primary-600 text-white'
+                  ? 'bg-yellow-300 text-black shadow-[4px_4px_0_0_#000]'
                   : ['review', 'materials'].indexOf(step) >= i
-                  ? 'bg-primary-100 text-primary-700'
-                  : 'bg-gray-100 text-gray-400'
+                  ? 'bg-emerald-300 text-black'
+                  : 'bg-gray-200 text-gray-500'
               }`}
             >
               {i + 1}
             </div>
             {i < 2 && (
               <div
-                className={`w-12 h-1 mx-1 rounded ${
+                className={`w-12 h-1 mx-1 ${
                   ['review', 'materials'].indexOf(step) > i
-                    ? 'bg-primary-300'
-                    : 'bg-gray-200'
+                    ? 'bg-emerald-300'
+                    : 'bg-gray-300'
                 }`}
               />
             )}
           </div>
         ))}
-        <span className="ml-2 text-sm text-gray-500">
+        <span className="ml-2 text-sm text-gray-700 font-medium">
           {step === 'config' && 'Configure your study session'}
           {step === 'review' && 'Review gathered materials'}
           {step === 'materials' && 'View generated materials'}
@@ -278,24 +278,24 @@ export default function HelpMeStudyPage() {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-          <p className="text-red-700">{error}</p>
+        <div className="mb-6 p-4 bg-rose-300 border-3 border-black flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-black flex-shrink-0" />
+          <p className="text-black font-bold">{error}</p>
         </div>
       )}
 
       {/* Step 1: Configuration */}
       {step === 'config' && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Target className="w-5 h-5 text-primary-600" />
+        <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000] p-6">
+          <h2 className="text-xl font-black text-black mb-4 flex items-center gap-2">
+            <Target className="w-5 h-5 text-black" />
             What do you need to study?
           </h2>
 
           <div className="space-y-4">
             {/* Topic - Required */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-black mb-2">
                 Topic / Subject Matter *
               </label>
               <input
@@ -303,16 +303,16 @@ export default function HelpMeStudyPage() {
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="e.g., Photosynthesis, World War II, Quadratic Equations"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400"
+                className="w-full px-4 py-3 border-3 border-black bg-white text-black placeholder-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-gray-600 font-medium">
                 Enter the main topic you're studying for
               </p>
             </div>
 
             {/* Unit / Chapter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-black mb-2">
                 Unit / Chapter (Optional)
               </label>
               <input
@@ -320,20 +320,20 @@ export default function HelpMeStudyPage() {
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 placeholder="e.g., Unit 3, Chapter 5, Module 2"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400"
+                className="w-full px-4 py-3 border-3 border-black bg-white text-black placeholder-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300"
               />
             </div>
 
             {/* Course Selection */}
             {courses.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-bold text-black mb-2">
                   Course (Optional)
                 </label>
                 <select
                   value={selectedCourse}
                   onChange={(e) => setSelectedCourse(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900"
+                  className="w-full px-4 py-3 border-3 border-black bg-white text-black font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300 cursor-pointer"
                 >
                   <option value="">All Courses</option>
                   {courses.map((course) => (
@@ -348,32 +348,32 @@ export default function HelpMeStudyPage() {
             {/* Date Range */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-bold text-black mb-2">
                   From Date (Optional)
                 </label>
                 <input
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900"
+                  className="w-full px-4 py-3 border-3 border-black bg-white text-black font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-bold text-black mb-2">
                   To Date (Optional)
                 </label>
                 <input
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900"
+                  className="w-full px-4 py-3 border-3 border-black bg-white text-black font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300"
                 />
               </div>
             </div>
 
             {/* Include Options */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-black mb-2">
                 Include in search:
               </label>
               <div className="flex flex-wrap gap-4">
@@ -382,29 +382,29 @@ export default function HelpMeStudyPage() {
                     type="checkbox"
                     checked={includeWorklogs}
                     onChange={(e) => setIncludeWorklogs(e.target.checked)}
-                    className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                    className="w-5 h-5 border-2 border-black accent-yellow-300"
                   />
-                  <span className="text-gray-700">Work Logs</span>
+                  <span className="text-black font-medium">Work Logs</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={includeAssignments}
                     onChange={(e) => setIncludeAssignments(e.target.checked)}
-                    className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                    className="w-5 h-5 border-2 border-black accent-yellow-300"
                   />
-                  <span className="text-gray-700">Assignments</span>
+                  <span className="text-black font-medium">Assignments</span>
                 </label>
               </div>
             </div>
           </div>
 
           {/* Search Button */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
+          <div className="mt-6 pt-6 border-t-3 border-black">
             <button
               onClick={handleSearch}
               disabled={loading || !topic.trim()}
-              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-6 py-3 bg-violet-300 text-black font-bold border-3 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -426,25 +426,25 @@ export default function HelpMeStudyPage() {
       {step === 'review' && overview && (
         <div className="space-y-6">
           {/* Overview Card */}
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-200 p-6">
+          <div className="bg-violet-200 border-3 border-black shadow-[4px_4px_0_0_#000] p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-black text-black">
                   {overview.topic}
-                  {overview.unit && <span className="text-purple-600"> - {overview.unit}</span>}
+                  {overview.unit && <span className="text-violet-700"> - {overview.unit}</span>}
                 </h2>
                 {courseContext && (
-                  <p className="text-sm text-purple-600 font-medium mt-1">
+                  <p className="text-sm text-violet-700 font-bold mt-1">
                     Detected Course: {courseContext}
                   </p>
                 )}
                 {overview.summary && (
-                  <p className="text-gray-600 mt-1">{overview.summary}</p>
+                  <p className="text-gray-800 mt-1">{overview.summary}</p>
                 )}
               </div>
               <button
                 onClick={() => setStep('config')}
-                className="text-sm text-primary-600 hover:underline"
+                className="text-sm text-black font-bold hover:underline"
               >
                 Modify Search
               </button>
@@ -452,8 +452,8 @@ export default function HelpMeStudyPage() {
 
             {/* AI Search Info */}
             {relatedTerms.length > 0 && (
-              <div className="mb-4 p-3 bg-white/60 rounded-lg border border-purple-100">
-                <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+              <div className="mb-4 p-3 bg-white/60 border-2 border-black">
+                <p className="text-xs text-gray-700 mb-2 flex items-center gap-1 font-bold">
                   <Sparkles className="w-3 h-3" />
                   AI searched for these related concepts:
                 </p>
@@ -461,7 +461,7 @@ export default function HelpMeStudyPage() {
                   {relatedTerms.map((term, i) => (
                     <span
                       key={i}
-                      className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs"
+                      className="px-2 py-1 bg-violet-300 text-black border-2 border-black text-xs font-bold"
                     >
                       {term}
                     </span>
@@ -472,48 +472,48 @@ export default function HelpMeStudyPage() {
 
             {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-              <div className="bg-white rounded-lg p-3 border border-purple-100">
-                <div className="flex items-center gap-2 text-gray-600 text-sm mb-1">
+              <div className="bg-white border-3 border-black p-3">
+                <div className="flex items-center gap-2 text-gray-700 text-sm mb-1 font-bold">
                   <ClipboardList className="w-4 h-4" />
                   <span>Sources</span>
                 </div>
-                <p className="text-2xl font-bold text-gray-900">{overview.totalSources}</p>
+                <p className="text-2xl font-black text-black">{overview.totalSources}</p>
               </div>
-              <div className="bg-white rounded-lg p-3 border border-purple-100">
-                <div className="flex items-center gap-2 text-gray-600 text-sm mb-1">
+              <div className="bg-white border-3 border-black p-3">
+                <div className="flex items-center gap-2 text-gray-700 text-sm mb-1 font-bold">
                   <FileText className="w-4 h-4" />
                   <span>Work Logs</span>
                 </div>
-                <p className="text-2xl font-bold text-gray-900">{overview.worklogCount}</p>
+                <p className="text-2xl font-black text-black">{overview.worklogCount}</p>
               </div>
-              <div className="bg-white rounded-lg p-3 border border-purple-100">
-                <div className="flex items-center gap-2 text-gray-600 text-sm mb-1">
+              <div className="bg-white border-3 border-black p-3">
+                <div className="flex items-center gap-2 text-gray-700 text-sm mb-1 font-bold">
                   <GraduationCap className="w-4 h-4" />
                   <span>Assignments</span>
                 </div>
-                <p className="text-2xl font-bold text-gray-900">{overview.assignmentCount}</p>
+                <p className="text-2xl font-black text-black">{overview.assignmentCount}</p>
               </div>
-              <div className="bg-white rounded-lg p-3 border border-purple-100">
-                <div className="flex items-center gap-2 text-gray-600 text-sm mb-1">
+              <div className="bg-white border-3 border-black p-3">
+                <div className="flex items-center gap-2 text-gray-700 text-sm mb-1 font-bold">
                   <Clock className="w-4 h-4" />
                   <span>Est. Time</span>
                 </div>
-                <p className="text-2xl font-bold text-gray-900">{overview.estimatedStudyTime}m</p>
+                <p className="text-2xl font-black text-black">{overview.estimatedStudyTime}m</p>
               </div>
             </div>
 
             {/* Key Topics */}
             {overview.keyTopics.length > 0 && (
               <div className="mb-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-yellow-500" />
+                <h3 className="text-sm font-black text-black mb-2 flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-yellow-600" />
                   Key Topics Identified
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {overview.keyTopics.map((topic, i) => (
                     <span
                       key={i}
-                      className="px-3 py-1 bg-white border border-purple-200 rounded-full text-sm text-gray-700"
+                      className="px-3 py-1 bg-white border-2 border-black text-sm text-black font-medium"
                     >
                       {topic}
                     </span>
@@ -525,14 +525,14 @@ export default function HelpMeStudyPage() {
             {/* Recommended Focus */}
             {overview.recommendedFocus.length > 0 && (
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Target className="w-4 h-4 text-red-500" />
+                <h3 className="text-sm font-black text-black mb-2 flex items-center gap-2">
+                  <Target className="w-4 h-4 text-rose-600" />
                   Recommended Focus Areas
                 </h3>
                 <ul className="space-y-1">
                   {overview.recommendedFocus.map((focus, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-800">
+                      <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
                       {focus}
                     </li>
                   ))}
@@ -543,18 +543,18 @@ export default function HelpMeStudyPage() {
 
           {/* Sources List */}
           {sources.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000] p-6">
               <button
                 onClick={() => setExpandedSources(!expandedSources)}
                 className="w-full flex items-center justify-between mb-4"
               >
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-black text-black">
                   Found Materials ({sources.length})
                 </h3>
                 {expandedSources ? (
-                  <ChevronUp className="w-5 h-5 text-gray-400" />
+                  <ChevronUp className="w-5 h-5 text-black" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-400" />
+                  <ChevronDown className="w-5 h-5 text-black" />
                 )}
               </button>
 
@@ -563,29 +563,29 @@ export default function HelpMeStudyPage() {
                   {sources.map((source) => (
                     <div
                       key={source.id}
-                      className="p-3 bg-gray-50 rounded-lg border border-gray-100"
+                      className="p-3 bg-gray-100 border-2 border-black"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                            className={`px-2 py-1 text-xs font-bold border-2 border-black ${
                               source.type === 'worklog'
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-green-100 text-green-700'
+                                ? 'bg-cyan-300 text-black'
+                                : 'bg-emerald-300 text-black'
                             }`}
                           >
                             {source.type === 'worklog' ? 'Work Log' : 'Assignment'}
                           </span>
-                          <h4 className="font-medium text-gray-900">{source.title}</h4>
+                          <h4 className="font-bold text-black">{source.title}</h4>
                         </div>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-600 font-medium">
                           {formatDate(source.date)}
                         </span>
                       </div>
                       {source.topic && (
-                        <p className="text-sm text-gray-500 mt-1">Topic: {source.topic}</p>
+                        <p className="text-sm text-gray-600 font-medium mt-1">Topic: {source.topic}</p>
                       )}
-                      <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                      <p className="text-sm text-gray-700 mt-2 line-clamp-2">
                         {source.content.substring(0, 200)}...
                       </p>
                     </div>
@@ -597,16 +597,16 @@ export default function HelpMeStudyPage() {
 
           {/* No Sources Warning */}
           {sources.length === 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-              <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Materials Found</h3>
-              <p className="text-gray-600 mb-4">
+            <div className="bg-yellow-300 border-3 border-black p-6 text-center">
+              <AlertCircle className="w-12 h-12 text-black mx-auto mb-3" />
+              <h3 className="text-lg font-black text-black mb-2">No Materials Found</h3>
+              <p className="text-gray-800 mb-4">
                 We couldn't find any work logs or assignments matching "{topic}".
                 Try adjusting your search or adding more work to your logs.
               </p>
               <button
                 onClick={() => setStep('config')}
-                className="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors"
+                className="px-4 py-2 bg-white text-black font-bold border-3 border-black hover:bg-gray-100 transition-colors"
               >
                 Try Different Search
               </button>
@@ -615,12 +615,12 @@ export default function HelpMeStudyPage() {
 
           {/* Generate Materials */}
           {sources.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-600" />
+            <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000] p-6">
+              <h3 className="text-lg font-black text-black mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-violet-600" />
                 Generate Study Materials
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-700 font-medium mb-4">
                 Choose what study materials you'd like to generate from your collected work:
               </p>
 
@@ -631,18 +631,18 @@ export default function HelpMeStudyPage() {
                       key={type}
                       onClick={() => generateMaterial(type)}
                       disabled={generating !== null}
-                      className="flex items-start gap-4 p-4 bg-gray-50 border border-gray-200 rounded-xl hover:bg-purple-50 hover:border-purple-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                      className="flex items-start gap-4 p-4 bg-gray-100 border-3 border-black hover:bg-violet-100 hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-left"
                     >
-                      <div className="p-2 bg-purple-100 rounded-lg">
+                      <div className="p-2 bg-violet-300 border-2 border-black">
                         {generating === type ? (
-                          <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
+                          <Loader2 className="w-5 h-5 text-black animate-spin" />
                         ) : (
-                          <info.icon className="w-5 h-5 text-purple-600" />
+                          <info.icon className="w-5 h-5 text-black" />
                         )}
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-900">{info.label}</h4>
-                        <p className="text-sm text-gray-500">{info.description}</p>
+                        <h4 className="font-bold text-black">{info.label}</h4>
+                        <p className="text-sm text-gray-600">{info.description}</p>
                       </div>
                     </button>
                   )
@@ -660,28 +660,28 @@ export default function HelpMeStudyPage() {
           <div className="flex items-center justify-between">
             <button
               onClick={() => setStep('review')}
-              className="text-primary-600 hover:underline flex items-center gap-1"
+              className="text-black font-bold hover:underline flex items-center gap-1"
             >
               ← Back to Overview
             </button>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-600 font-medium">
               {generatedMaterials.length} material(s) generated
             </span>
           </div>
 
           {/* Generated Materials Tabs */}
           {generatedMaterials.map((material) => (
-            <div key={material.type} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+            <div key={material.type} className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000] overflow-hidden">
+              <div className="bg-violet-200 px-6 py-4 border-b-3 border-black">
                 <div className="flex items-center gap-3">
                   {(() => {
                     const Icon = materialTypeInfo[material.type].icon;
-                    return <Icon className="w-5 h-5 text-purple-600" />;
+                    return <Icon className="w-5 h-5 text-black" />;
                   })()}
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-black text-black">
                     {materialTypeInfo[material.type].label}
                   </h3>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-700 font-medium">
                     Generated {formatDate(material.generatedAt)}
                   </span>
                 </div>
@@ -692,17 +692,17 @@ export default function HelpMeStudyPage() {
                 {material.type === 'notes' && (
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-medium text-gray-700 mb-2">Summary</h4>
-                      <p className="text-gray-600">{material.content.summary}</p>
+                      <h4 className="font-bold text-black mb-2">Summary</h4>
+                      <p className="text-gray-700">{material.content.summary}</p>
                     </div>
                     {material.content.keyPoints?.length > 0 && (
                       <div>
-                        <h4 className="font-medium text-gray-700 mb-2">Key Points</h4>
+                        <h4 className="font-bold text-black mb-2">Key Points</h4>
                         <ul className="space-y-2">
                           {material.content.keyPoints.map((point: string, i: number) => (
                             <li key={i} className="flex items-start gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                              <span className="text-gray-600">{point}</span>
+                              <CheckCircle className="w-4 h-4 text-emerald-600 mt-1 flex-shrink-0" />
+                              <span className="text-gray-700">{point}</span>
                             </li>
                           ))}
                         </ul>
@@ -710,13 +710,13 @@ export default function HelpMeStudyPage() {
                     )}
                     {material.content.importantTerms?.length > 0 && (
                       <div>
-                        <h4 className="font-medium text-gray-700 mb-2">Important Terms</h4>
+                        <h4 className="font-bold text-black mb-2">Important Terms</h4>
                         <div className="grid gap-2">
                           {material.content.importantTerms.map((term: { term: string; definition: string }, i: number) => (
-                            <div key={i} className="p-3 bg-gray-50 rounded-lg">
-                              <span className="font-medium text-primary-600">{term.term}</span>
-                              <span className="text-gray-500"> — </span>
-                              <span className="text-gray-600">{term.definition}</span>
+                            <div key={i} className="p-3 bg-violet-100 border-2 border-black">
+                              <span className="font-bold text-violet-700">{term.term}</span>
+                              <span className="text-gray-600"> — </span>
+                              <span className="text-gray-700">{term.definition}</span>
                             </div>
                           ))}
                         </div>
@@ -730,14 +730,14 @@ export default function HelpMeStudyPage() {
                   <div className="space-y-6">
                     {material.content.sections?.map((section: { title: string; content: string; keyTakeaways: string[] }, i: number) => (
                       <div key={i}>
-                        <h4 className="font-semibold text-gray-900 mb-2">{section.title}</h4>
-                        <p className="text-gray-600 mb-3">{section.content}</p>
+                        <h4 className="font-black text-black mb-2">{section.title}</h4>
+                        <p className="text-gray-700 mb-3">{section.content}</p>
                         {section.keyTakeaways?.length > 0 && (
-                          <div className="pl-4 border-l-2 border-purple-300">
-                            <p className="text-sm font-medium text-gray-500 mb-1">Key Takeaways:</p>
+                          <div className="pl-4 border-l-4 border-violet-400">
+                            <p className="text-sm font-bold text-gray-600 mb-1">Key Takeaways:</p>
                             <ul className="space-y-1">
                               {section.keyTakeaways.map((point: string, j: number) => (
-                                <li key={j} className="text-sm text-gray-600">• {point}</li>
+                                <li key={j} className="text-sm text-gray-700">• {point}</li>
                               ))}
                             </ul>
                           </div>
@@ -745,11 +745,11 @@ export default function HelpMeStudyPage() {
                       </div>
                     ))}
                     {material.content.reviewQuestions?.length > 0 && (
-                      <div className="bg-purple-50 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-900 mb-2">Review Questions</h4>
+                      <div className="bg-yellow-200 border-3 border-black p-4">
+                        <h4 className="font-black text-black mb-2">Review Questions</h4>
                         <ol className="space-y-2 list-decimal list-inside">
                           {material.content.reviewQuestions.map((q: string, i: number) => (
-                            <li key={i} className="text-gray-600">{q}</li>
+                            <li key={i} className="text-gray-700">{q}</li>
                           ))}
                         </ol>
                       </div>
@@ -771,8 +771,8 @@ export default function HelpMeStudyPage() {
           ))}
 
           {/* Generate More */}
-          <div className="bg-gray-50 rounded-xl border border-gray-200 p-6">
-            <h3 className="font-semibold text-gray-900 mb-3">Generate More Materials</h3>
+          <div className="bg-gray-100 border-3 border-black p-6">
+            <h3 className="font-black text-black mb-3">Generate More Materials</h3>
             <div className="flex flex-wrap gap-2">
               {(Object.entries(materialTypeInfo) as [StudyMaterialType, typeof materialTypeInfo.notes][])
                 .filter(([type]) => !generatedMaterials.find(m => m.type === type))
@@ -781,14 +781,14 @@ export default function HelpMeStudyPage() {
                     key={type}
                     onClick={() => generateMaterial(type)}
                     disabled={generating !== null}
-                    className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    className="px-4 py-2 bg-white border-3 border-black hover:bg-violet-100 hover:translate-x-[1px] hover:translate-y-[1px] transition-all disabled:opacity-50 flex items-center gap-2"
                   >
                     {generating === type ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <info.icon className="w-4 h-4 text-purple-600" />
+                      <info.icon className="w-4 h-4 text-violet-600" />
                     )}
-                    <span className="text-gray-700">{info.label}</span>
+                    <span className="text-black font-bold">{info.label}</span>
                   </button>
                 ))}
             </div>
@@ -886,21 +886,21 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
   };
 
   const getScoreColor = (percentage: number) => {
-    if (percentage >= 80) return 'text-green-600';
+    if (percentage >= 80) return 'text-emerald-600';
     if (percentage >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    return 'text-rose-600';
   };
 
   const renderQuestion = (q: any, i: number) => (
-    <div key={q.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div key={q.id} className="bg-white border-3 border-black overflow-hidden">
       {/* Question Header */}
-      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-5 py-3 border-b border-gray-200">
+      <div className="bg-violet-200 px-5 py-3 border-b-3 border-black">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-purple-700">Question {i + 1} of {questions.length}</span>
-          <span className={`text-xs px-2 py-1 rounded-full ${
-            q.type === 'multiple_choice' ? 'bg-blue-100 text-blue-700' :
-            q.type === 'true_false' ? 'bg-green-100 text-green-700' :
-            'bg-orange-100 text-orange-700'
+          <span className="text-sm font-bold text-black">Question {i + 1} of {questions.length}</span>
+          <span className={`text-xs px-2 py-1 font-bold border-2 border-black ${
+            q.type === 'multiple_choice' ? 'bg-cyan-300 text-black' :
+            q.type === 'true_false' ? 'bg-emerald-300 text-black' :
+            'bg-amber-300 text-black'
           }`}>
             {q.type === 'multiple_choice' ? 'Multiple Choice' :
              q.type === 'true_false' ? 'True/False' : 'Short Answer'}
@@ -910,7 +910,7 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
       
       {/* Question Body */}
       <div className="p-5">
-        <p className="text-lg font-medium text-gray-900 mb-4">{q.question}</p>
+        <p className="text-lg font-bold text-black mb-4">{q.question}</p>
         
         {q.type === 'multiple_choice' && q.options && (
           <div className="space-y-3">
@@ -922,33 +922,33 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
               return (
                 <label
                   key={j}
-                  className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border-2 ${
+                  className={`flex items-center gap-4 p-4 cursor-pointer transition-all border-3 ${
                     showResults
                       ? isCorrect
-                        ? 'border-green-500 bg-green-50'
+                        ? 'border-emerald-500 bg-emerald-100'
                         : isSelected
-                          ? 'border-red-500 bg-red-50'
-                          : 'border-gray-200 bg-gray-50 opacity-60'
+                          ? 'border-rose-500 bg-rose-100'
+                          : 'border-gray-300 bg-gray-100 opacity-60'
                       : isSelected
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
+                        ? 'border-violet-500 bg-violet-100'
+                        : 'border-black hover:bg-gray-100'
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                  <div className={`w-8 h-8 border-3 flex items-center justify-center flex-shrink-0 ${
                     showResults
                       ? isCorrect
-                        ? 'border-green-500 bg-green-500 text-white'
+                        ? 'border-emerald-500 bg-emerald-500 text-white'
                         : isSelected
-                          ? 'border-red-500 bg-red-500 text-white'
-                          : 'border-gray-300'
+                          ? 'border-rose-500 bg-rose-500 text-white'
+                          : 'border-gray-400'
                       : isSelected
-                        ? 'border-purple-500 bg-purple-500 text-white'
-                        : 'border-gray-300'
+                        ? 'border-violet-500 bg-violet-500 text-white'
+                        : 'border-black'
                   }`}>
-                    <span className="text-sm font-medium">{String.fromCharCode(65 + j)}</span>
+                    <span className="text-sm font-bold">{String.fromCharCode(65 + j)}</span>
                   </div>
                   <span className={`flex-1 ${
-                    showResults && isCorrect ? 'text-green-700 font-medium' : 'text-gray-700'
+                    showResults && isCorrect ? 'text-emerald-700 font-bold' : 'text-black'
                   }`}>{option}</span>
                   <input
                     type="radio"
@@ -974,20 +974,20 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
               return (
                 <label
                   key={option}
-                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-xl cursor-pointer transition-all border-2 ${
+                  className={`flex-1 flex items-center justify-center gap-3 p-4 cursor-pointer transition-all border-3 ${
                     showResults
                       ? isCorrect
-                        ? 'border-green-500 bg-green-50'
+                        ? 'border-emerald-500 bg-emerald-100'
                         : isSelected
-                          ? 'border-red-500 bg-red-50'
-                          : 'border-gray-200 bg-gray-50 opacity-60'
+                          ? 'border-rose-500 bg-rose-100'
+                          : 'border-gray-300 bg-gray-100 opacity-60'
                       : isSelected
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
+                        ? 'border-violet-500 bg-violet-100'
+                        : 'border-black hover:bg-gray-100'
                   }`}
                 >
-                  <span className={`text-lg font-medium ${
-                    showResults && isCorrect ? 'text-green-700' : isSelected ? 'text-purple-700' : 'text-gray-700'
+                  <span className={`text-lg font-bold ${
+                    showResults && isCorrect ? 'text-emerald-700' : isSelected ? 'text-violet-700' : 'text-black'
                   }`}>{option}</span>
                   <input
                     type="radio"
@@ -1011,44 +1011,44 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
             disabled={showResults}
             placeholder="Type your answer here..."
             rows={3}
-            className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:border-purple-500 focus:ring-0 transition-colors resize-none"
+            className="w-full px-4 py-3 text-lg border-3 border-black bg-white text-black focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-colors resize-none"
           />
         )}
 
         {showResults && q.type === 'short_answer' && aiGrades[q.id] && (
-          <div className={`mt-4 p-4 rounded-xl ${
+          <div className={`mt-4 p-4 border-3 ${
             aiGrades[q.id].isCorrect
-              ? 'bg-green-50 border border-green-200'
+              ? 'bg-emerald-100 border-emerald-500'
               : aiGrades[q.id].score >= 50
-                ? 'bg-amber-50 border border-amber-200'
-                : 'bg-red-50 border border-red-200'
+                ? 'bg-amber-100 border-amber-500'
+                : 'bg-rose-100 border-rose-500'
           }`}>
             <div className="flex items-start gap-3">
               {aiGrades[q.id].isCorrect ? (
-                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                <CheckCircle className="w-5 h-5 text-emerald-600 mt-0.5" />
               ) : aiGrades[q.id].score >= 50 ? (
                 <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
               ) : (
-                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-rose-600 mt-0.5" />
               )}
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <p className={`font-medium ${
-                    aiGrades[q.id].isCorrect ? 'text-green-800' : aiGrades[q.id].score >= 50 ? 'text-amber-800' : 'text-red-800'
+                  <p className={`font-bold ${
+                    aiGrades[q.id].isCorrect ? 'text-emerald-800' : aiGrades[q.id].score >= 50 ? 'text-amber-800' : 'text-rose-800'
                   }`}>
                     {aiGrades[q.id].isCorrect ? 'Correct!' : aiGrades[q.id].score >= 50 ? 'Partially Correct' : 'Incorrect'}
                   </p>
-                  <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                    aiGrades[q.id].score >= 80 ? 'bg-green-100 text-green-700' :
-                    aiGrades[q.id].score >= 50 ? 'bg-amber-100 text-amber-700' :
-                    'bg-red-100 text-red-700'
+                  <span className={`text-sm font-bold px-2 py-1 border-2 border-black ${
+                    aiGrades[q.id].score >= 80 ? 'bg-emerald-300 text-black' :
+                    aiGrades[q.id].score >= 50 ? 'bg-amber-300 text-black' :
+                    'bg-rose-300 text-black'
                   }`}>
                     {aiGrades[q.id].score}%
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">{aiGrades[q.id].feedback}</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  <span className="font-medium">Expected answer:</span> {q.correctAnswer}
+                <p className="text-sm text-gray-700 mt-1">{aiGrades[q.id].feedback}</p>
+                <p className="text-sm text-gray-600 mt-2">
+                  <span className="font-bold">Expected answer:</span> {q.correctAnswer}
                 </p>
               </div>
             </div>
@@ -1056,25 +1056,25 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
         )}
 
         {showResults && q.type !== 'short_answer' && (
-          <div className={`mt-4 p-4 rounded-xl ${
+          <div className={`mt-4 p-4 border-3 ${
             isQuestionCorrect(q)
-              ? 'bg-green-50 border border-green-200'
-              : 'bg-amber-50 border border-amber-200'
+              ? 'bg-emerald-100 border-emerald-500'
+              : 'bg-amber-100 border-amber-500'
           }`}>
             <div className="flex items-start gap-3">
               {isQuestionCorrect(q) ? (
-                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                <CheckCircle className="w-5 h-5 text-emerald-600 mt-0.5" />
               ) : (
                 <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
               )}
               <div>
-                <p className={`font-medium ${
-                  isQuestionCorrect(q) ? 'text-green-800' : 'text-amber-800'
+                <p className={`font-bold ${
+                  isQuestionCorrect(q) ? 'text-emerald-800' : 'text-amber-800'
                 }`}>
                   {isQuestionCorrect(q) ? 'Correct!' : `Correct Answer: ${q.correctAnswer}`}
                 </p>
                 {q.explanation && (
-                  <p className="text-sm text-gray-600 mt-1">{q.explanation}</p>
+                  <p className="text-sm text-gray-700 mt-1">{q.explanation}</p>
                 )}
               </div>
             </div>
@@ -1090,34 +1090,34 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
     <div className="space-y-6">
       {/* Mode Toggle & Progress */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-gray-200 border-2 border-black p-1">
           <button
             onClick={() => setMode('all')}
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              mode === 'all' ? 'bg-white shadow text-gray-900' : 'text-gray-600 hover:text-gray-900'
+            className={`px-3 py-2 text-sm font-bold transition-colors ${
+              mode === 'all' ? 'bg-white border-2 border-black text-black' : 'text-gray-600 hover:text-black'
             }`}
           >
             All Questions
           </button>
           <button
             onClick={() => setMode('one')}
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              mode === 'one' ? 'bg-white shadow text-gray-900' : 'text-gray-600 hover:text-gray-900'
+            className={`px-3 py-2 text-sm font-bold transition-colors ${
+              mode === 'one' ? 'bg-white border-2 border-black text-black' : 'text-gray-600 hover:text-black'
             }`}
           >
             One at a Time
           </button>
         </div>
         
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-700 font-bold">
           {Object.keys(answers).length} / {questions.length} answered
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+      <div className="w-full h-3 bg-gray-200 border-2 border-black overflow-hidden">
         <div
-          className="h-full bg-purple-500 transition-all duration-300"
+          className="h-full bg-violet-400 transition-all duration-300"
           style={{ width: `${(Object.keys(answers).length / questions.length) * 100}%` }}
         />
       </div>
@@ -1136,7 +1136,7 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
             <button
               onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
               disabled={currentQuestion === 0}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-black font-bold border-3 border-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ← Previous
             </button>
@@ -1145,11 +1145,11 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
                 <button
                   key={i}
                   onClick={() => setCurrentQuestion(i)}
-                  className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
+                  className={`w-8 h-8 text-sm font-bold transition-colors border-2 border-black ${
                     i === currentQuestion
-                      ? 'bg-purple-600 text-white'
+                      ? 'bg-violet-400 text-black'
                       : answers[questions[i].id]
-                        ? 'bg-purple-100 text-purple-700'
+                        ? 'bg-violet-200 text-black'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -1160,7 +1160,7 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
             <button
               onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
               disabled={currentQuestion === questions.length - 1}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-black font-bold border-3 border-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next →
             </button>
@@ -1169,21 +1169,21 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
       )}
 
       {/* Submit/Results Section */}
-      <div className={`p-6 rounded-xl border-2 ${
+      <div className={`p-6 border-3 ${
         showResults
           ? scorePercentage >= 80
-            ? 'bg-green-50 border-green-200'
+            ? 'bg-emerald-200 border-emerald-500'
             : scorePercentage >= 60
-              ? 'bg-yellow-50 border-yellow-200'
-              : 'bg-red-50 border-red-200'
-          : 'bg-purple-50 border-purple-200'
+              ? 'bg-yellow-200 border-yellow-500'
+              : 'bg-rose-200 border-rose-500'
+          : 'bg-violet-200 border-black'
       }`}>
         {showResults ? (
           <div className="text-center">
-            <div className={`text-5xl font-bold mb-2 ${getScoreColor(scorePercentage)}`}>
+            <div className={`text-5xl font-black mb-2 ${getScoreColor(scorePercentage)}`}>
               {scorePercentage}%
             </div>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-800 font-medium mb-4">
               You got {getScore()} out of {questions.length} questions correct
             </p>
             <button
@@ -1193,7 +1193,7 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
                 setCurrentQuestion(0);
                 setAiGrades({});
               }}
-              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium transition-colors"
+              className="px-6 py-3 bg-violet-400 text-black font-bold border-3 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
             >
               Try Again
             </button>
@@ -1201,8 +1201,8 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
         ) : (
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-gray-900">Ready to submit?</p>
-              <p className="text-sm text-gray-600">
+              <p className="font-bold text-black">Ready to submit?</p>
+              <p className="text-sm text-gray-700">
                 {questions.some(q => q.type === 'short_answer') 
                   ? 'AI will grade your short answer responses'
                   : 'You can still review your answers before checking'}
@@ -1211,7 +1211,7 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
             <button
               onClick={handleCheckAnswers}
               disabled={Object.keys(answers).length === 0 || isGrading}
-              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-6 py-3 bg-emerald-300 text-black font-bold border-3 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isGrading ? (
                 <>
@@ -1285,7 +1285,7 @@ function FlashcardsDisplay({ cards }: { cards: { id: string; front: string; back
   };
 
   if (!currentCard) {
-    return <p className="text-gray-500">No flashcards available</p>;
+    return <p className="text-gray-600 font-medium">No flashcards available</p>;
   }
 
   const progressPercentage = (knownCards.size / cards.length) * 100;
@@ -1295,32 +1295,32 @@ function FlashcardsDisplay({ cards }: { cards: { id: string; front: string; back
   return (
     <div className="space-y-6">
       {/* Stats Bar */}
-      <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4">
+      <div className="flex items-center justify-between bg-gray-100 border-3 border-black p-4">
         <div className="flex items-center gap-6">
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{knownCards.size}</div>
-            <div className="text-xs text-gray-500">Known</div>
+            <div className="text-2xl font-black text-emerald-600">{knownCards.size}</div>
+            <div className="text-xs text-gray-600 font-bold">Known</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-amber-600">{learningCards.size}</div>
-            <div className="text-xs text-gray-500">Learning</div>
+            <div className="text-2xl font-black text-amber-600">{learningCards.size}</div>
+            <div className="text-xs text-gray-600 font-bold">Learning</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-600">{cards.length - knownCards.size - learningCards.size}</div>
-            <div className="text-xs text-gray-500">Remaining</div>
+            <div className="text-2xl font-black text-gray-600">{cards.length - knownCards.size - learningCards.size}</div>
+            <div className="text-xs text-gray-600 font-bold">Remaining</div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={shuffleCards}
-            className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-2 text-black border-2 border-black hover:bg-gray-200 transition-colors"
             title="Shuffle"
           >
             🔀
           </button>
           <button
             onClick={resetProgress}
-            className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-2 text-black border-2 border-black hover:bg-gray-200 transition-colors"
             title="Reset Progress"
           >
             🔄
@@ -1332,18 +1332,18 @@ function FlashcardsDisplay({ cards }: { cards: { id: string; front: string; back
       <div className="flex items-center justify-center gap-4">
         <button
           onClick={prevCard}
-          className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+          className="p-2 text-black font-bold hover:bg-gray-100 transition-colors"
         >
           ←
         </button>
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-gray-700 font-bold">
           Card {currentIndex + 1} of {cards.length}
-          {isKnown && <span className="ml-2 text-green-600">✓ Known</span>}
+          {isKnown && <span className="ml-2 text-emerald-600">✓ Known</span>}
           {isLearning && <span className="ml-2 text-amber-600">📖 Learning</span>}
         </span>
         <button
           onClick={nextCard}
-          className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+          className="p-2 text-black font-bold hover:bg-gray-100 transition-colors"
         >
           →
         </button>
@@ -1362,35 +1362,33 @@ function FlashcardsDisplay({ cards }: { cards: { id: string; front: string; back
         >
           {/* Front */}
           <div
-            className="absolute inset-0 rounded-2xl p-8 flex flex-col items-center justify-center shadow-lg border-2 border-purple-200"
+            className="absolute inset-0 p-8 flex flex-col items-center justify-center border-3 border-black shadow-[6px_6px_0_0_#000] bg-violet-300"
             style={{ 
               backfaceVisibility: 'hidden',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
             }}
           >
-            <div className="absolute top-4 left-4 text-white/60 text-sm font-medium">
+            <div className="absolute top-4 left-4 text-black/60 text-sm font-bold">
               QUESTION
             </div>
-            <p className="text-white text-xl sm:text-2xl font-medium text-center leading-relaxed">
+            <p className="text-black text-xl sm:text-2xl font-bold text-center leading-relaxed">
               {currentCard.front}
             </p>
-            <div className="absolute bottom-4 text-white/60 text-sm">
+            <div className="absolute bottom-4 text-black/60 text-sm font-medium">
               Tap to reveal answer
             </div>
           </div>
           
           {/* Back */}
           <div
-            className="absolute inset-0 rounded-2xl p-8 flex flex-col items-center justify-center shadow-lg border-2 border-teal-200 [transform:rotateY(180deg)]"
+            className="absolute inset-0 p-8 flex flex-col items-center justify-center border-3 border-black shadow-[6px_6px_0_0_#000] bg-emerald-300 [transform:rotateY(180deg)]"
             style={{ 
               backfaceVisibility: 'hidden',
-              background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)'
             }}
           >
-            <div className="absolute top-4 left-4 text-white/60 text-sm font-medium">
+            <div className="absolute top-4 left-4 text-black/60 text-sm font-bold">
               ANSWER
             </div>
-            <p className="text-white text-lg sm:text-xl text-center leading-relaxed">
+            <p className="text-black text-lg sm:text-xl text-center leading-relaxed font-medium">
               {currentCard.back}
             </p>
           </div>
@@ -1401,37 +1399,37 @@ function FlashcardsDisplay({ cards }: { cards: { id: string; front: string; back
       <div className="grid grid-cols-3 gap-3">
         <button
           onClick={markLearning}
-          className="flex flex-col items-center gap-2 p-4 bg-amber-50 border-2 border-amber-200 rounded-xl hover:bg-amber-100 transition-colors"
+          className="flex flex-col items-center gap-2 p-4 bg-amber-200 border-3 border-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none shadow-[4px_4px_0_0_#000] transition-all"
         >
           <span className="text-2xl">📖</span>
-          <span className="text-sm font-medium text-amber-700">Still Learning</span>
+          <span className="text-sm font-bold text-black">Still Learning</span>
         </button>
         <button
           onClick={() => setIsFlipped(!isFlipped)}
-          className="flex flex-col items-center gap-2 p-4 bg-gray-50 border-2 border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
+          className="flex flex-col items-center gap-2 p-4 bg-gray-200 border-3 border-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none shadow-[4px_4px_0_0_#000] transition-all"
         >
           <span className="text-2xl">🔄</span>
-          <span className="text-sm font-medium text-gray-700">Flip Card</span>
+          <span className="text-sm font-bold text-black">Flip Card</span>
         </button>
         <button
           onClick={markKnown}
-          className="flex flex-col items-center gap-2 p-4 bg-green-50 border-2 border-green-200 rounded-xl hover:bg-green-100 transition-colors"
+          className="flex flex-col items-center gap-2 p-4 bg-emerald-200 border-3 border-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none shadow-[4px_4px_0_0_#000] transition-all"
         >
           <span className="text-2xl">✓</span>
-          <span className="text-sm font-medium text-green-700">Got It!</span>
+          <span className="text-sm font-bold text-black">Got It!</span>
         </button>
       </div>
 
       {/* Progress Bar */}
       <div className="space-y-2">
-        <div className="flex justify-between text-sm text-gray-600">
+        <div className="flex justify-between text-sm text-gray-700 font-bold">
           <span>Progress</span>
           <span>{Math.round(progressPercentage)}% mastered</span>
         </div>
-        <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+        <div className="w-full h-4 bg-gray-200 border-2 border-black overflow-hidden">
           <div className="h-full flex">
             <div
-              className="h-full bg-green-500 transition-all duration-300"
+              className="h-full bg-emerald-400 transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}
             />
             <div
@@ -1443,7 +1441,7 @@ function FlashcardsDisplay({ cards }: { cards: { id: string; front: string; back
       </div>
 
       {/* Keyboard Shortcuts Help */}
-      <div className="text-center text-xs text-gray-400">
+      <div className="text-center text-xs text-gray-500 font-medium">
         Use arrow keys to navigate • Space to flip
       </div>
     </div>

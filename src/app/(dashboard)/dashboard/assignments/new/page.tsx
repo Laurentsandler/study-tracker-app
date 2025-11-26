@@ -199,29 +199,29 @@ export default function NewAssignmentPage() {
       <div className="mb-8">
         <Link
           href="/dashboard/assignments"
-          className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-4"
+          className="inline-flex items-center gap-2 text-gray-700 hover:text-black font-bold mb-4"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to assignments
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">New Assignment</h1>
-        <p className="text-gray-500">Add a new assignment manually or paste text for AI parsing</p>
+        <h1 className="text-3xl font-black text-black">New Assignment</h1>
+        <p className="text-gray-600 font-medium">Add a new assignment manually or paste text for AI parsing</p>
       </div>
 
       {/* AI Input Toggle */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-xl border border-purple-100 mb-6">
+      <div className="bg-violet-200 p-4 border-3 border-black shadow-[4px_4px_0_0_#000] mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Wand2 className="h-5 w-5 text-purple-600" />
+            <Wand2 className="h-5 w-5 text-black" />
             <div>
-              <p className="font-medium text-gray-900">AI-Assisted Entry</p>
-              <p className="text-sm text-gray-500">Upload a document or paste text for AI parsing</p>
+              <p className="font-bold text-black">AI-Assisted Entry</p>
+              <p className="text-sm text-gray-700 font-medium">Upload a document or paste text for AI parsing</p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => setShowAiInput(!showAiInput)}
-            className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-4 py-2 bg-black text-white text-sm font-bold hover:bg-gray-800 transition-colors"
           >
             {showAiInput ? 'Manual Entry' : 'Use AI'}
           </button>
@@ -243,28 +243,28 @@ export default function NewAssignmentPage() {
               {!uploadedFile ? (
                 <label
                   htmlFor="file-upload"
-                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer bg-white hover:bg-purple-50 transition-colors"
+                  className="flex flex-col items-center justify-center w-full h-32 border-3 border-dashed border-black cursor-pointer bg-white hover:bg-violet-100 transition-colors"
                 >
                   {extractingText ? (
                     <div className="flex flex-col items-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mb-2" />
-                      <span className="text-sm text-gray-500">Extracting text...</span>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mb-2" />
+                      <span className="text-sm text-gray-700 font-medium">Extracting text...</span>
                     </div>
                   ) : (
                     <>
-                      <Upload className="h-8 w-8 text-purple-400 mb-2" />
-                      <p className="text-sm font-medium text-gray-700">Upload a document</p>
-                      <p className="text-xs text-gray-500 mt-1">PDF, DOCX, TXT, or Markdown (max 10MB)</p>
+                      <Upload className="h-8 w-8 text-black mb-2" />
+                      <p className="text-sm font-bold text-black">Upload a document</p>
+                      <p className="text-xs text-gray-600 mt-1 font-medium">PDF, DOCX, TXT, or Markdown (max 10MB)</p>
                     </>
                   )}
                 </label>
               ) : (
-                <div className="flex items-center justify-between p-4 bg-white border border-purple-200 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-white border-3 border-black">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{getFileIcon(uploadedFile.name)}</span>
                     <div>
-                      <p className="font-medium text-gray-900 text-sm">{uploadedFile.name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="font-bold text-black text-sm">{uploadedFile.name}</p>
+                      <p className="text-xs text-gray-600 font-medium">
                         {(uploadedFile.size / 1024).toFixed(1)} KB • Text extracted
                       </p>
                     </div>
@@ -272,7 +272,7 @@ export default function NewAssignmentPage() {
                   <button
                     type="button"
                     onClick={removeUploadedFile}
-                    className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                    className="p-1 text-gray-600 hover:text-red-600 transition-colors"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -282,10 +282,10 @@ export default function NewAssignmentPage() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
+                <div className="w-full border-t-2 border-gray-400" />
               </div>
               <div className="relative flex justify-center">
-                <span className="px-3 bg-gradient-to-r from-purple-50 to-blue-50 text-sm text-gray-500">
+                <span className="px-3 bg-violet-200 text-sm text-gray-700 font-bold">
                   or paste text directly
                 </span>
               </div>
@@ -297,11 +297,11 @@ export default function NewAssignmentPage() {
               onChange={(e) => setAiText(e.target.value)}
               placeholder="Paste assignment details here... e.g., 'Math homework due Friday - Chapter 5 problems 1-20, worth 50 points, should take about 2 hours'"
               rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none resize-none text-gray-900 bg-white"
+              className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none resize-none text-black bg-white font-medium"
             />
             
             {aiText && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-600 font-medium">
                 {aiText.length.toLocaleString()} characters extracted
               </p>
             )}
@@ -310,7 +310,7 @@ export default function NewAssignmentPage() {
               type="button"
               onClick={handleAiParse}
               disabled={aiLoading || !aiText.trim()}
-              className="w-full py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 bg-black text-white font-bold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               {aiLoading ? (
                 <>
@@ -329,17 +329,17 @@ export default function NewAssignmentPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700">
+        <div className="mb-6 p-4 bg-red-200 border-3 border-black flex items-center gap-3 text-black">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
-          <span className="text-sm">{error}</span>
+          <span className="text-sm font-bold">{error}</span>
         </div>
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-6 border-3 border-black shadow-[4px_4px_0_0_#000] space-y-6">
         {/* Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="title" className="block text-sm font-bold text-black mb-2">
             Title *
           </label>
           <input
@@ -347,16 +347,16 @@ export default function NewAssignmentPage() {
             type="text"
             id="title"
             placeholder="e.g., Chapter 5 Homework"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
+            className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
           />
           {errors.title && (
-            <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+            <p className="text-red-600 text-sm mt-1 font-bold">{errors.title.message}</p>
           )}
         </div>
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="description" className="block text-sm font-bold text-black mb-2">
             Description
           </label>
           <textarea
@@ -364,19 +364,19 @@ export default function NewAssignmentPage() {
             id="description"
             rows={3}
             placeholder="Add details about this assignment..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none text-gray-900 bg-white"
+            className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none resize-none text-black bg-white font-medium"
           />
         </div>
 
         {/* Course */}
         <div>
-          <label htmlFor="course_id" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="course_id" className="block text-sm font-bold text-black mb-2">
             Course
           </label>
           <select
             {...register('course_id')}
             id="course_id"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
+            className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
           >
             <option value="">Select a course</option>
             {courses.map((course) => (
@@ -390,25 +390,25 @@ export default function NewAssignmentPage() {
         {/* Due Date & Priority */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="due_date" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="due_date" className="block text-sm font-bold text-black mb-2">
               Due Date
             </label>
             <input
               {...register('due_date')}
               type="date"
               id="due_date"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
+              className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
             />
           </div>
 
           <div>
-            <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="priority" className="block text-sm font-bold text-black mb-2">
               Priority
             </label>
             <select
               {...register('priority')}
               id="priority"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
+              className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
@@ -419,7 +419,7 @@ export default function NewAssignmentPage() {
 
         {/* Estimated Duration */}
         <div>
-          <label htmlFor="estimated_duration" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="estimated_duration" className="block text-sm font-bold text-black mb-2">
             Estimated Duration (minutes)
           </label>
           <input
@@ -427,7 +427,7 @@ export default function NewAssignmentPage() {
             type="number"
             id="estimated_duration"
             min={1}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-gray-900 bg-white"
+            className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
           />
         </div>
 
@@ -436,14 +436,14 @@ export default function NewAssignmentPage() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex-1 py-3 bg-gray-200 border-3 border-black text-black font-bold shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex-1 py-3 bg-yellow-300 border-3 border-black text-black font-bold shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {loading ? 'Creating...' : 'Create Assignment'}
           </button>

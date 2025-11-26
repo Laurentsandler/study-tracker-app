@@ -229,47 +229,47 @@ export default function NewWorklogPage() {
   return (
     <div className="max-w-3xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-8">
         <button
           onClick={() => router.back()}
-          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-3 bg-white border-3 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5 text-black" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Log Work</h1>
-          <p className="text-gray-600">Take a photo or upload an image of your work</p>
+          <h1 className="text-3xl font-black text-black">📸 Log Work</h1>
+          <p className="text-gray-700 font-medium">Take a photo or upload an image of your work</p>
         </div>
       </div>
 
       {/* Image Capture Section */}
       {!imagePreview ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Capture Your Work</h2>
+        <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000] p-6 mb-6">
+          <h2 className="text-xl font-black text-black mb-4">Capture Your Work</h2>
           <div className="flex flex-col sm:flex-row gap-4">
             <button
               onClick={() => setShowCamera(true)}
-              className="flex-1 flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-primary-500 hover:bg-primary-50 transition-colors"
+              className="flex-1 flex flex-col items-center justify-center gap-3 p-6 border-3 border-dashed border-black hover:bg-cyan-100 transition-colors"
             >
-              <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center">
-                <Camera className="w-7 h-7 text-primary-600" />
+              <div className="w-14 h-14 bg-cyan-300 border-3 border-black flex items-center justify-center">
+                <Camera className="w-7 h-7 text-black" />
               </div>
               <div className="text-center">
-                <p className="font-medium text-gray-900">Take Photo</p>
-                <p className="text-sm text-gray-500">Use your camera</p>
+                <p className="font-bold text-black">Take Photo</p>
+                <p className="text-sm text-gray-600">Use your camera</p>
               </div>
             </button>
             
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex-1 flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-primary-500 hover:bg-primary-50 transition-colors"
+              className="flex-1 flex flex-col items-center justify-center gap-3 p-6 border-3 border-dashed border-black hover:bg-violet-100 transition-colors"
             >
-              <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center">
-                <Upload className="w-7 h-7 text-primary-600" />
+              <div className="w-14 h-14 bg-violet-300 border-3 border-black flex items-center justify-center">
+                <Upload className="w-7 h-7 text-black" />
               </div>
               <div className="text-center">
-                <p className="font-medium text-gray-900">Upload Image</p>
-                <p className="text-sm text-gray-500">From your device</p>
+                <p className="font-bold text-black">Upload Image</p>
+                <p className="text-sm text-gray-600">From your device</p>
               </div>
             </button>
             
@@ -283,26 +283,26 @@ export default function NewWorklogPage() {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+        <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000] p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Captured Image</h2>
+            <h2 className="text-xl font-black text-black">Captured Image</h2>
             <button
               onClick={removeImage}
-              className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 bg-rose-300 border-2 border-black hover:bg-rose-400 transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-black" />
             </button>
           </div>
-          <div className="relative rounded-lg overflow-hidden bg-gray-100">
+          <div className="relative bg-gray-200 border-3 border-black overflow-hidden">
             <img
               src={imagePreview}
               alt="Captured work"
               className="w-full max-h-[400px] object-contain"
             />
             {isAnalyzing && (
-              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
-                <Loader2 className="w-10 h-10 text-white animate-spin mb-3" />
-                <p className="text-white font-medium">Analyzing image with AI...</p>
+              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center">
+                <Loader2 className="w-10 h-10 text-yellow-300 animate-spin mb-3" />
+                <p className="text-white font-bold">Analyzing image with AI...</p>
                 <p className="text-white/70 text-sm">Extracting text and details</p>
               </div>
             )}
@@ -312,27 +312,27 @@ export default function NewWorklogPage() {
 
       {/* AI Status */}
       {isAnalyzing && (
-        <div className="bg-primary-50 border border-primary-200 rounded-xl p-4 mb-6 flex items-center gap-3">
-          <Sparkles className="w-5 h-5 text-primary-600 animate-pulse" />
-          <p className="text-primary-700">AI is analyzing your handwritten work...</p>
+        <div className="bg-yellow-300 border-3 border-black p-4 mb-6 flex items-center gap-3">
+          <Sparkles className="w-5 h-5 text-black animate-pulse" />
+          <p className="text-black font-bold">AI is analyzing your handwritten work...</p>
         </div>
       )}
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-          <p className="text-red-700">{error}</p>
+        <div className="bg-rose-300 border-3 border-black p-4 mb-6">
+          <p className="text-black font-bold">{error}</p>
         </div>
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Work Details</h2>
+      <form onSubmit={handleSubmit} className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000] p-6">
+        <h2 className="text-xl font-black text-black mb-4">Work Details</h2>
         
         <div className="space-y-4">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-bold text-black mb-2">
               Title *
             </label>
             <input
@@ -340,14 +340,14 @@ export default function NewWorklogPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., Math Chapter 5 Problems"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400"
+              className="w-full px-4 py-3 border-3 border-black bg-white text-black placeholder-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300"
               required
             />
           </div>
 
           {/* Topic */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-bold text-black mb-2">
               Topic / Subject
             </label>
             <input
@@ -355,20 +355,20 @@ export default function NewWorklogPage() {
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g., Algebra, World History"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400"
+              className="w-full px-4 py-3 border-3 border-black bg-white text-black placeholder-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300"
             />
           </div>
 
           {/* Type and Date */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-black mb-2">
                 Type
               </label>
               <select
                 value={worklogType}
                 onChange={(e) => setWorklogType(e.target.value as WorklogType)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900"
+                className="w-full px-4 py-3 border-3 border-black bg-white text-black font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300 cursor-pointer"
               >
                 {worklogTypes.map((type) => (
                   <option key={type.value} value={type.value}>
@@ -378,21 +378,21 @@ export default function NewWorklogPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-black mb-2">
                 Date Completed
               </label>
               <input
                 type="date"
                 value={dateCompleted}
                 onChange={(e) => setDateCompleted(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900"
+                className="w-full px-4 py-3 border-3 border-black bg-white text-black font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300"
               />
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-bold text-black mb-2">
               Description
             </label>
             <textarea
@@ -400,13 +400,13 @@ export default function NewWorklogPage() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of the work..."
               rows={2}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none bg-white text-gray-900 placeholder-gray-400"
+              className="w-full px-4 py-3 border-3 border-black bg-white text-black placeholder-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300 resize-none"
             />
           </div>
 
           {/* Content */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-bold text-black mb-2">
               Content / Extracted Text
             </label>
             <textarea
@@ -414,27 +414,27 @@ export default function NewWorklogPage() {
               onChange={(e) => setContent(e.target.value)}
               placeholder="The full content extracted from your work..."
               rows={6}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none font-mono text-sm bg-white text-gray-900 placeholder-gray-400"
+              className="w-full px-4 py-3 border-3 border-black bg-white text-black placeholder-gray-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 resize-none"
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-2 text-xs text-gray-600 font-medium">
               This content will be used for generating study materials and test prep
             </p>
           </div>
         </div>
 
         {/* Submit */}
-        <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+        <div className="flex justify-end gap-3 mt-6 pt-6 border-t-3 border-black">
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            className="px-5 py-3 bg-gray-200 text-black font-bold border-3 border-black hover:bg-gray-300 transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSaving || isAnalyzing}
-            className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-6 py-3 bg-emerald-300 text-black font-bold border-3 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSaving ? (
               <>

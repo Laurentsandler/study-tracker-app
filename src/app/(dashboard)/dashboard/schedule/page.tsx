@@ -491,7 +491,7 @@ export default function SchedulePage() {
           )}
 
           {/* Tasks Grid */}
-          <div className="grid grid-cols-7 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
             {getWeekDates().map((date, i) => {
               const dateStr = date.toISOString().split('T')[0];
               const dayTasks = plannedTasks.filter(t => t.scheduled_date === dateStr);
@@ -503,16 +503,29 @@ export default function SchedulePage() {
               return (
                 <div 
                   key={i} 
-                  className={`min-h-[220px] border-3 border-black rounded-xl overflow-hidden ${
+                  className={`min-h-[280px] border-3 border-black rounded-xl overflow-hidden flex flex-col ${
                     isToday 
                       ? 'bg-violet-100' 
                       : hasItems
                         ? 'bg-white'
-                        : 'bg-gray-100'
+                        : 'bg-gray-50'
                   }`}
                   style={{ boxShadow: isToday ? '5px 5px 0 0 #000' : '4px 4px 0 0 #000' }}
                 >
-                  <div className="p-4 space-y-3">
+                  {/* Day Header */}
+                  <div className={`px-3 py-2 border-b-2 border-black text-center ${
+                    isToday ? 'bg-violet-300' : 'bg-gray-100'
+                  }`}>
+                    <p className="text-xs font-black uppercase tracking-wide text-black">
+                      {SHORT_DAY_NAMES[date.getDay()]}
+                    </p>
+                    <p className={`text-lg font-black ${isToday ? 'text-black' : 'text-gray-700'}`}>
+                      {date.getDate()}
+                    </p>
+                  </div>
+
+                  {/* Tasks Container */}
+                  <div className="p-3 space-y-2 flex-1 overflow-y-auto">
                     {/* Planned tasks */}
                     {dayTasks.map(task => {
                       const priority = task.assignment?.priority || 'medium';
@@ -521,49 +534,49 @@ export default function SchedulePage() {
                       return (
                         <div
                           key={task.id}
-                          className={`group relative p-3 rounded-lg border-3 border-black cursor-pointer transition-all ${
+                          className={`group relative p-2.5 rounded-lg border-2 border-black cursor-pointer transition-all ${
                             task.completed
                               ? 'bg-gray-200 opacity-70'
                               : styles.bg
                           }`}
-                          style={{ boxShadow: '3px 3px 0 0 #000' }}
+                          style={{ boxShadow: '2px 2px 0 0 #000' }}
                           onClick={() => toggleTaskComplete(task)}
                         >
                           {/* Task content */}
                           <div className="pr-5">
-                            <p className={`text-sm font-bold leading-tight ${
+                            <p className={`text-xs font-bold leading-tight ${
                               task.completed ? 'line-through text-gray-500' : 'text-black'
                             }`}>
                               {task.assignment?.title || task.title}
                             </p>
-                            <p className={`text-xs font-medium mt-1.5 ${
+                            <p className={`text-[10px] font-medium mt-1 ${
                               task.completed ? 'text-gray-500' : 'text-black/70'
                             }`}>
-                              {formatTime(task.scheduled_start)} - {formatTime(task.scheduled_end)}
+                              {formatTime(task.scheduled_start)}
                             </p>
                           </div>
 
                           {/* Actions */}
-                          <div className="absolute top-2 right-2 flex items-center gap-1">
+                          <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
                             {task.completed ? (
-                              <CheckCircle className="h-4 w-4 text-emerald-600" />
+                              <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
                             ) : (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   deleteTask(task.id);
                                 }}
-                                className="p-1 opacity-0 group-hover:opacity-100 bg-rose-400 border-2 border-black rounded transition-all"
+                                className="p-0.5 opacity-0 group-hover:opacity-100 bg-rose-400 border border-black rounded transition-all"
                               >
-                                <Trash2 className="h-3 w-3 text-black" />
+                                <Trash2 className="h-2.5 w-2.5 text-black" />
                               </button>
                             )}
                           </div>
 
                           {/* AI badge */}
                           {task.ai_generated && !task.completed && (
-                            <div className="absolute -top-1.5 -left-1.5 p-1 bg-violet-400 border-2 border-black rounded">
-                              <Sparkles className="h-3 w-3 text-black" />
+                            <div className="absolute -top-1 -left-1 p-0.5 bg-violet-400 border border-black rounded">
+                              <Sparkles className="h-2.5 w-2.5 text-black" />
                             </div>
                           )}
                         </div>
@@ -574,42 +587,42 @@ export default function SchedulePage() {
                     {daySuggestions.map(suggestion => (
                       <div
                         key={suggestion.id}
-                        className="group relative p-3 rounded-lg border-3 border-dashed border-violet-500 bg-violet-50 cursor-pointer hover:bg-violet-100 transition-all"
+                        className="group relative p-2.5 rounded-lg border-2 border-dashed border-violet-500 bg-violet-50 cursor-pointer hover:bg-violet-100 transition-all"
                         onClick={() => handleSuggestionAction(suggestion.id, 'accept')}
                       >
                         {/* AI badge */}
-                        <div className="absolute -top-2 -right-2 p-1.5 bg-violet-500 border-2 border-black rounded-lg" style={{ boxShadow: '2px 2px 0 0 #000' }}>
-                          <Sparkles className="h-3 w-3 text-white" />
+                        <div className="absolute -top-1.5 -right-1.5 p-1 bg-violet-500 border border-black rounded">
+                          <Sparkles className="h-2.5 w-2.5 text-white" />
                         </div>
 
-                        <p className="text-sm font-bold text-violet-800 leading-tight pr-4">
+                        <p className="text-xs font-bold text-violet-800 leading-tight pr-3">
                           {suggestion.assignment?.title || 'Study Session'}
                         </p>
-                        <p className="text-xs font-medium text-violet-600 mt-1.5">
-                          {formatTime(suggestion.suggested_start)} - {formatTime(suggestion.suggested_end)}
+                        <p className="text-[10px] font-medium text-violet-600 mt-1">
+                          {formatTime(suggestion.suggested_start)}
                         </p>
 
                         {/* Hover actions */}
-                        <div className="absolute bottom-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleSuggestionAction(suggestion.id, 'accept');
                             }}
-                            className="p-1.5 bg-emerald-400 border-2 border-black rounded-lg"
+                            className="p-1 bg-emerald-400 border border-black rounded"
                             title="Accept"
                           >
-                            <Check className="h-3 w-3 text-black" />
+                            <Check className="h-2.5 w-2.5 text-black" />
                           </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleSuggestionAction(suggestion.id, 'dismiss');
                             }}
-                            className="p-1.5 bg-rose-400 border-2 border-black rounded-lg"
+                            className="p-1 bg-rose-400 border border-black rounded"
                             title="Dismiss"
                           >
-                            <X className="h-3 w-3 text-black" />
+                            <X className="h-2.5 w-2.5 text-black" />
                           </button>
                         </div>
                       </div>
@@ -617,12 +630,12 @@ export default function SchedulePage() {
 
                     {/* Empty state */}
                     {!hasItems && (
-                      <div className="flex flex-col items-center justify-center h-28 text-center">
-                        <div className="w-10 h-10 rounded-lg bg-gray-200 border-2 border-black flex items-center justify-center mb-2">
-                          <Calendar className="h-5 w-5 text-gray-500" />
+                      <div className="flex flex-col items-center justify-center h-full text-center py-6">
+                        <div className="w-8 h-8 rounded-lg bg-gray-200 border-2 border-black flex items-center justify-center mb-2">
+                          <Calendar className="h-4 w-4 text-gray-400" />
                         </div>
-                        <p className="text-xs font-bold text-gray-500">
-                          {isPast ? 'No tasks' : 'Free day'}
+                        <p className="text-[10px] font-bold text-gray-400">
+                          {isPast ? 'No tasks' : 'Free'}
                         </p>
                       </div>
                     )}

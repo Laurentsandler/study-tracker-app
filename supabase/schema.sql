@@ -125,6 +125,27 @@ CREATE TABLE transcriptions (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Work Logs (Classwork and homework tracking)
+CREATE TYPE worklog_type AS ENUM ('classwork', 'homework', 'notes', 'quiz', 'test', 'project', 'other');
+
+CREATE TABLE worklogs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+    assignment_id UUID REFERENCES assignments(id) ON DELETE SET NULL,
+    course_id UUID REFERENCES courses(id) ON DELETE SET NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    content TEXT, -- Extracted content from the image
+    topic TEXT,
+    worklog_type worklog_type DEFAULT 'classwork',
+    date_completed DATE DEFAULT CURRENT_DATE,
+    image_url TEXT,
+    storage_path TEXT, -- Path in Supabase Storage
+    raw_extracted_text TEXT, -- Raw OCR/AI extracted text
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- =============================================
 -- 4. CREATE INDEXES FOR PERFORMANCE
 -- =============================================
@@ -141,6 +162,13 @@ CREATE INDEX idx_planned_tasks_user_id ON planned_tasks(user_id);
 CREATE INDEX idx_planned_tasks_date ON planned_tasks(scheduled_date);
 CREATE INDEX idx_transcriptions_user_id ON transcriptions(user_id);
 
+-- Worklog indexes
+CREATE INDEX idx_worklogs_user_id ON worklogs(user_id);
+CREATE INDEX idx_worklogs_assignment_id ON worklogs(assignment_id);
+CREATE INDEX idx_worklogs_course_id ON worklogs(course_id);
+CREATE INDEX idx_worklogs_date_completed ON worklogs(date_completed);
+CREATE INDEX idx_worklogs_type ON worklogs(worklog_type);
+
 -- =============================================
 -- 5. ROW LEVEL SECURITY (RLS) POLICIES
 -- =============================================
@@ -154,6 +182,9 @@ ALTER TABLE study_materials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_schedule ENABLE ROW LEVEL SECURITY;
 ALTER TABLE planned_tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transcriptions ENABLE ROW LEVEL SECURITY;
+
+-- Enable RLS on worklogs
+ALTER TABLE worklogs ENABLE ROW LEVEL SECURITY;
 
 -- Profiles policies
 CREATE POLICY "Users can view own profile" ON profiles
@@ -253,6 +284,19 @@ CREATE POLICY "Users can update own transcriptions" ON transcriptions
 CREATE POLICY "Users can delete own transcriptions" ON transcriptions
     FOR DELETE USING (auth.uid() = user_id);
 
+-- Worklogs policies
+CREATE POLICY "Users can view own worklogs" ON worklogs
+    FOR SELECT USING (auth.uid() = user_id);
+    
+CREATE POLICY "Users can create own worklogs" ON worklogs
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+    
+CREATE POLICY "Users can update own worklogs" ON worklogs
+    FOR UPDATE USING (auth.uid() = user_id);
+    
+CREATE POLICY "Users can delete own worklogs" ON worklogs
+    FOR DELETE USING (auth.uid() = user_id);
+
 -- =============================================
 -- 6. FUNCTIONS & TRIGGERS
 -- =============================================
@@ -297,6 +341,11 @@ CREATE TRIGGER update_planned_tasks_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_worklogs_updated_at
+    BEFORE UPDATE ON worklogs
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
 -- Function to automatically create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -334,6 +383,11 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO storage.buckets (id, name, public) 
 VALUES ('audio-recordings', 'audio-recordings', false)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage bucket for worklog images
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('worklog-images', 'worklog-images', false)
 ON CONFLICT (id) DO NOTHING;
 
 -- Policy: Users can upload to their own folder
@@ -381,6 +435,30 @@ CREATE POLICY "Users can delete own audio recordings"
 ON storage.objects FOR DELETE
 USING (
     bucket_id = 'audio-recordings' 
+    AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Policy: Users can upload worklog images
+CREATE POLICY "Users can upload worklog images"
+ON storage.objects FOR INSERT
+WITH CHECK (
+    bucket_id = 'worklog-images' 
+    AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Policy: Users can view their own worklog images
+CREATE POLICY "Users can view own worklog images"
+ON storage.objects FOR SELECT
+USING (
+    bucket_id = 'worklog-images' 
+    AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Policy: Users can delete their own worklog images
+CREATE POLICY "Users can delete own worklog images"
+ON storage.objects FOR DELETE
+USING (
+    bucket_id = 'worklog-images' 
     AND auth.uid()::text = (storage.foldername(name))[1]
 );
 

@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   X,
+  FileText,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 
@@ -48,6 +49,7 @@ export default function DashboardLayout({
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/assignments', label: 'Assignments', icon: ClipboardList },
+    { href: '/dashboard/worklogs', label: 'Work Logs', icon: FileText },
     { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
     { href: '/dashboard/capture', label: 'Capture', icon: Camera },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings },

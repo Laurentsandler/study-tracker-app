@@ -3,6 +3,7 @@
 export type AssignmentStatus = 'pending' | 'in_progress' | 'completed';
 export type AssignmentPriority = 'low' | 'medium' | 'high';
 export type StudyMaterialType = 'notes' | 'study_guide' | 'practice_test' | 'flashcards';
+export type WorklogType = 'classwork' | 'homework' | 'notes' | 'quiz' | 'test' | 'project' | 'other';
 
 export interface Profile {
   id: string;
@@ -140,6 +141,27 @@ export interface Transcription {
   created_at: string;
 }
 
+export interface Worklog {
+  id: string;
+  user_id: string;
+  assignment_id: string | null;
+  course_id: string | null;
+  title: string;
+  description: string | null;
+  content: string | null;
+  topic: string | null;
+  worklog_type: WorklogType;
+  date_completed: string;
+  image_url: string | null;
+  storage_path: string | null;
+  raw_extracted_text: string | null;
+  created_at: string;
+  updated_at: string;
+  // Joined data
+  assignment?: Assignment;
+  course?: Course;
+}
+
 // Form types
 export interface CreateAssignmentInput {
   title: string;
@@ -166,3 +188,19 @@ export interface ScheduleBlockInput {
   available_end: string;
   label?: string;
 }
+
+export interface CreateWorklogInput {
+  title: string;
+  description?: string;
+  content?: string;
+  topic?: string;
+  worklog_type?: WorklogType;
+  date_completed?: string;
+  assignment_id?: string;
+  course_id?: string;
+  image_url?: string;
+  storage_path?: string;
+  raw_extracted_text?: string;
+}
+
+export interface UpdateWorklogInput extends Partial<CreateWorklogInput> {}

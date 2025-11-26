@@ -227,20 +227,27 @@ Only return valid JSON, no markdown.`,
           messages: [
             {
               role: 'system',
-              content: `You are helping a student find study materials related to their topic.
+              content: `You are helping a student gather ALL potentially useful study materials for an upcoming test or study session.
 
-Given a study topic and a list of the student's work, identify which items are relevant.
+Your job is to be VERY INCLUSIVE and GENEROUS when selecting materials. When in doubt, INCLUDE IT.
 
-Be INCLUSIVE - if a material MIGHT be related to the topic, include it. Consider:
-- Direct mentions of the topic
-- Subtopics that fall under this topic
-- Prerequisites or foundational concepts
-- Related labs, experiments, or activities
-- Practice problems on related concepts
+Include materials that have ANY connection to the topic:
+- Direct mentions of the topic or its subtopics
+- Foundational concepts that support understanding of the topic
+- Prerequisites that would help understand the main topic
+- Related experiments, labs, or hands-on activities
+- Practice problems, worksheets, or homework on related concepts
+- Vocabulary or terminology that might appear in the topic
+- Historical context or real-world applications
+- Cross-curricular connections (e.g., math skills needed for science)
+- Review materials from earlier in the unit/chapter
+- Anything from the same general subject area that could provide context
+
+REMEMBER: It's better to include something marginally related than to miss something important. Students can always skip irrelevant material, but they can't study from materials they don't have.
 
 Return a JSON object with:
-- relevantIndices: Array of numbers (the indices [0], [1], etc. of relevant materials)
-- reasoning: Brief explanation of why these are relevant
+- relevantIndices: Array of numbers (the indices [0], [1], etc. of materials to include)
+- reasoning: Brief explanation
 
 Only return valid JSON, no markdown.`,
             },

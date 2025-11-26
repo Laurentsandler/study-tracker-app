@@ -803,6 +803,8 @@ export default function HelpMeStudyPage() {
 function PracticeTestDisplay({ questions }: { questions: any[] }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showResults, setShowResults] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [mode, setMode] = useState<'all' | 'one'>('all');
 
   const handleAnswer = (questionId: string, answer: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
@@ -812,127 +814,292 @@ function PracticeTestDisplay({ questions }: { questions: any[] }) {
     return questions.filter(q => answers[q.id] === q.correctAnswer).length;
   };
 
-  return (
-    <div className="space-y-6">
-      {questions.map((q, i) => (
-        <div key={q.id} className="p-4 bg-gray-50 rounded-lg">
-          <p className="font-medium text-gray-900 mb-3">
-            {i + 1}. {q.question}
-          </p>
-          
-          {q.type === 'multiple_choice' && q.options && (
-            <div className="space-y-2">
-              {q.options.map((option: string, j: number) => (
+  const getScoreColor = (percentage: number) => {
+    if (percentage >= 80) return 'text-green-600';
+    if (percentage >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const renderQuestion = (q: any, i: number) => (
+    <div key={q.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      {/* Question Header */}
+      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-5 py-3 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-purple-700">Question {i + 1} of {questions.length}</span>
+          <span className={`text-xs px-2 py-1 rounded-full ${
+            q.type === 'multiple_choice' ? 'bg-blue-100 text-blue-700' :
+            q.type === 'true_false' ? 'bg-green-100 text-green-700' :
+            'bg-orange-100 text-orange-700'
+          }`}>
+            {q.type === 'multiple_choice' ? 'Multiple Choice' :
+             q.type === 'true_false' ? 'True/False' : 'Short Answer'}
+          </span>
+        </div>
+      </div>
+      
+      {/* Question Body */}
+      <div className="p-5">
+        <p className="text-lg font-medium text-gray-900 mb-4">{q.question}</p>
+        
+        {q.type === 'multiple_choice' && q.options && (
+          <div className="space-y-3">
+            {q.options.map((option: string, j: number) => {
+              const isSelected = answers[q.id] === option;
+              const isCorrect = option === q.correctAnswer;
+              const showCorrectness = showResults && isSelected;
+              
+              return (
                 <label
                   key={j}
-                  className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
-                    answers[q.id] === option
-                      ? showResults
-                        ? option === q.correctAnswer
-                          ? 'bg-green-100 border-green-300'
-                          : 'bg-red-100 border-red-300'
-                        : 'bg-primary-100 border-primary-300'
-                      : 'bg-white border border-gray-200 hover:bg-gray-100'
+                  className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all border-2 ${
+                    showResults
+                      ? isCorrect
+                        ? 'border-green-500 bg-green-50'
+                        : isSelected
+                          ? 'border-red-500 bg-red-50'
+                          : 'border-gray-200 bg-gray-50 opacity-60'
+                      : isSelected
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
                   }`}
                 >
+                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    showResults
+                      ? isCorrect
+                        ? 'border-green-500 bg-green-500 text-white'
+                        : isSelected
+                          ? 'border-red-500 bg-red-500 text-white'
+                          : 'border-gray-300'
+                      : isSelected
+                        ? 'border-purple-500 bg-purple-500 text-white'
+                        : 'border-gray-300'
+                  }`}>
+                    <span className="text-sm font-medium">{String.fromCharCode(65 + j)}</span>
+                  </div>
+                  <span className={`flex-1 ${
+                    showResults && isCorrect ? 'text-green-700 font-medium' : 'text-gray-700'
+                  }`}>{option}</span>
                   <input
                     type="radio"
                     name={q.id}
                     value={option}
-                    checked={answers[q.id] === option}
+                    checked={isSelected}
                     onChange={() => handleAnswer(q.id, option)}
                     disabled={showResults}
-                    className="w-4 h-4"
+                    className="sr-only"
                   />
-                  <span className="text-gray-700">{option}</span>
                 </label>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
+        )}
 
-          {q.type === 'true_false' && (
-            <div className="flex gap-4">
-              {['True', 'False'].map((option) => (
+        {q.type === 'true_false' && (
+          <div className="flex gap-4">
+            {['True', 'False'].map((option) => {
+              const isSelected = answers[q.id] === option;
+              const isCorrect = option === q.correctAnswer;
+              
+              return (
                 <label
                   key={option}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-colors ${
-                    answers[q.id] === option
-                      ? showResults
-                        ? option === q.correctAnswer
-                          ? 'bg-green-100'
-                          : 'bg-red-100'
-                        : 'bg-primary-100'
-                      : 'bg-white border border-gray-200 hover:bg-gray-100'
+                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-xl cursor-pointer transition-all border-2 ${
+                    showResults
+                      ? isCorrect
+                        ? 'border-green-500 bg-green-50'
+                        : isSelected
+                          ? 'border-red-500 bg-red-50'
+                          : 'border-gray-200 bg-gray-50 opacity-60'
+                      : isSelected
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
                   }`}
                 >
+                  <span className={`text-lg font-medium ${
+                    showResults && isCorrect ? 'text-green-700' : isSelected ? 'text-purple-700' : 'text-gray-700'
+                  }`}>{option}</span>
                   <input
                     type="radio"
                     name={q.id}
                     value={option}
-                    checked={answers[q.id] === option}
+                    checked={isSelected}
                     onChange={() => handleAnswer(q.id, option)}
                     disabled={showResults}
-                    className="w-4 h-4"
+                    className="sr-only"
                   />
-                  <span>{option}</span>
                 </label>
+              );
+            })}
+          </div>
+        )}
+
+        {q.type === 'short_answer' && (
+          <input
+            type="text"
+            value={answers[q.id] || ''}
+            onChange={(e) => handleAnswer(q.id, e.target.value)}
+            disabled={showResults}
+            placeholder="Type your answer here..."
+            className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:border-purple-500 focus:ring-0 transition-colors"
+          />
+        )}
+
+        {showResults && (
+          <div className={`mt-4 p-4 rounded-xl ${
+            answers[q.id] === q.correctAnswer
+              ? 'bg-green-50 border border-green-200'
+              : 'bg-amber-50 border border-amber-200'
+          }`}>
+            <div className="flex items-start gap-3">
+              {answers[q.id] === q.correctAnswer ? (
+                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+              )}
+              <div>
+                <p className={`font-medium ${
+                  answers[q.id] === q.correctAnswer ? 'text-green-800' : 'text-amber-800'
+                }`}>
+                  {answers[q.id] === q.correctAnswer ? 'Correct!' : `Correct Answer: ${q.correctAnswer}`}
+                </p>
+                {q.explanation && (
+                  <p className="text-sm text-gray-600 mt-1">{q.explanation}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const scorePercentage = Math.round((getScore() / questions.length) * 100);
+
+  return (
+    <div className="space-y-6">
+      {/* Mode Toggle & Progress */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => setMode('all')}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              mode === 'all' ? 'bg-white shadow text-gray-900' : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            All Questions
+          </button>
+          <button
+            onClick={() => setMode('one')}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              mode === 'one' ? 'bg-white shadow text-gray-900' : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            One at a Time
+          </button>
+        </div>
+        
+        <div className="text-sm text-gray-600">
+          {Object.keys(answers).length} / {questions.length} answered
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-purple-500 transition-all duration-300"
+          style={{ width: `${(Object.keys(answers).length / questions.length) * 100}%` }}
+        />
+      </div>
+
+      {/* Questions */}
+      {mode === 'all' ? (
+        <div className="space-y-6">
+          {questions.map((q, i) => renderQuestion(q, i))}
+        </div>
+      ) : (
+        <div>
+          {renderQuestion(questions[currentQuestion], currentQuestion)}
+          
+          {/* Navigation */}
+          <div className="flex items-center justify-between mt-4">
+            <button
+              onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
+              disabled={currentQuestion === 0}
+              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ← Previous
+            </button>
+            <div className="flex items-center gap-2">
+              {questions.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentQuestion(i)}
+                  className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
+                    i === currentQuestion
+                      ? 'bg-purple-600 text-white'
+                      : answers[questions[i].id]
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {i + 1}
+                </button>
               ))}
             </div>
-          )}
-
-          {q.type === 'short_answer' && (
-            <input
-              type="text"
-              value={answers[q.id] || ''}
-              onChange={(e) => handleAnswer(q.id, e.target.value)}
-              disabled={showResults}
-              placeholder="Type your answer..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-            />
-          )}
-
-          {showResults && (
-            <div className={`mt-3 p-3 rounded-lg ${answers[q.id] === q.correctAnswer ? 'bg-green-50' : 'bg-yellow-50'}`}>
-              <p className="text-sm">
-                <strong>Correct Answer:</strong> {q.correctAnswer}
-              </p>
-              {q.explanation && (
-                <p className="text-sm text-gray-600 mt-1">{q.explanation}</p>
-              )}
-            </div>
-          )}
+            <button
+              onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
+              disabled={currentQuestion === questions.length - 1}
+              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next →
+            </button>
+          </div>
         </div>
-      ))}
+      )}
 
-      <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+      {/* Submit/Results Section */}
+      <div className={`p-6 rounded-xl border-2 ${
+        showResults
+          ? scorePercentage >= 80
+            ? 'bg-green-50 border-green-200'
+            : scorePercentage >= 60
+              ? 'bg-yellow-50 border-yellow-200'
+              : 'bg-red-50 border-red-200'
+          : 'bg-purple-50 border-purple-200'
+      }`}>
         {showResults ? (
-          <>
-            <p className="font-semibold text-gray-900">
-              Score: {getScore()} / {questions.length} ({Math.round((getScore() / questions.length) * 100)}%)
+          <div className="text-center">
+            <div className={`text-5xl font-bold mb-2 ${getScoreColor(scorePercentage)}`}>
+              {scorePercentage}%
+            </div>
+            <p className="text-gray-600 mb-4">
+              You got {getScore()} out of {questions.length} questions correct
             </p>
             <button
               onClick={() => {
                 setShowResults(false);
                 setAnswers({});
+                setCurrentQuestion(0);
               }}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium transition-colors"
             >
               Try Again
             </button>
-          </>
+          </div>
         ) : (
-          <>
-            <p className="text-gray-600">
-              {Object.keys(answers).length} / {questions.length} answered
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-900">Ready to submit?</p>
+              <p className="text-sm text-gray-600">You can still review your answers before checking</p>
+            </div>
             <button
               onClick={() => setShowResults(true)}
-              disabled={Object.keys(answers).length < questions.length}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+              disabled={Object.keys(answers).length === 0}
+              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Check Answers
             </button>
-          </>
+          </div>
         )}
       </div>
     </div>
@@ -944,93 +1111,217 @@ function FlashcardsDisplay({ cards }: { cards: { id: string; front: string; back
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [knownCards, setKnownCards] = useState<Set<string>>(new Set());
+  const [learningCards, setLearningCards] = useState<Set<string>>(new Set());
 
   const currentCard = cards[currentIndex];
 
   const nextCard = () => {
     setIsFlipped(false);
-    setCurrentIndex((prev) => (prev + 1) % cards.length);
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % cards.length);
+    }, 100);
   };
 
   const prevCard = () => {
     setIsFlipped(false);
-    setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length);
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length);
+    }, 100);
   };
 
   const markKnown = () => {
     setKnownCards(prev => new Set(prev).add(currentCard.id));
+    setLearningCards(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(currentCard.id);
+      return newSet;
+    });
     nextCard();
+  };
+
+  const markLearning = () => {
+    setLearningCards(prev => new Set(prev).add(currentCard.id));
+    setKnownCards(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(currentCard.id);
+      return newSet;
+    });
+    nextCard();
+  };
+
+  const shuffleCards = () => {
+    setCurrentIndex(Math.floor(Math.random() * cards.length));
+    setIsFlipped(false);
+  };
+
+  const resetProgress = () => {
+    setKnownCards(new Set());
+    setLearningCards(new Set());
+    setCurrentIndex(0);
+    setIsFlipped(false);
   };
 
   if (!currentCard) {
     return <p className="text-gray-500">No flashcards available</p>;
   }
 
+  const progressPercentage = (knownCards.size / cards.length) * 100;
+  const isKnown = knownCards.has(currentCard.id);
+  const isLearning = learningCards.has(currentCard.id);
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between text-sm text-gray-500">
-        <span>Card {currentIndex + 1} of {cards.length}</span>
-        <span>{knownCards.size} marked as known</span>
+    <div className="space-y-6">
+      {/* Stats Bar */}
+      <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4">
+        <div className="flex items-center gap-6">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600">{knownCards.size}</div>
+            <div className="text-xs text-gray-500">Known</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-amber-600">{learningCards.size}</div>
+            <div className="text-xs text-gray-500">Learning</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-gray-600">{cards.length - knownCards.size - learningCards.size}</div>
+            <div className="text-xs text-gray-500">Remaining</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={shuffleCards}
+            className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+            title="Shuffle"
+          >
+            🔀
+          </button>
+          <button
+            onClick={resetProgress}
+            className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+            title="Reset Progress"
+          >
+            🔄
+          </button>
+        </div>
       </div>
 
+      {/* Card Counter */}
+      <div className="flex items-center justify-center gap-4">
+        <button
+          onClick={prevCard}
+          className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          ←
+        </button>
+        <span className="text-sm text-gray-600">
+          Card {currentIndex + 1} of {cards.length}
+          {isKnown && <span className="ml-2 text-green-600">✓ Known</span>}
+          {isLearning && <span className="ml-2 text-amber-600">📖 Learning</span>}
+        </span>
+        <button
+          onClick={nextCard}
+          className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          →
+        </button>
+      </div>
+
+      {/* Flashcard */}
       <div
         onClick={() => setIsFlipped(!isFlipped)}
-        className="cursor-pointer"
+        className="cursor-pointer perspective-1000"
       >
         <div
-          className={`relative h-64 rounded-xl transition-all duration-500 transform-gpu ${
+          className={`relative h-80 transition-all duration-500 transform-style-3d ${
             isFlipped ? '[transform:rotateY(180deg)]' : ''
           }`}
           style={{ transformStyle: 'preserve-3d' }}
         >
           {/* Front */}
           <div
-            className="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl p-6 flex items-center justify-center text-white text-xl font-medium text-center backface-hidden"
-            style={{ backfaceVisibility: 'hidden' }}
+            className="absolute inset-0 rounded-2xl p-8 flex flex-col items-center justify-center shadow-lg border-2 border-purple-200"
+            style={{ 
+              backfaceVisibility: 'hidden',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+            }}
           >
-            {currentCard.front}
+            <div className="absolute top-4 left-4 text-white/60 text-sm font-medium">
+              QUESTION
+            </div>
+            <p className="text-white text-xl sm:text-2xl font-medium text-center leading-relaxed">
+              {currentCard.front}
+            </p>
+            <div className="absolute bottom-4 text-white/60 text-sm">
+              Tap to reveal answer
+            </div>
           </div>
           
           {/* Back */}
           <div
-            className="absolute inset-0 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl p-6 flex items-center justify-center text-white text-lg text-center [transform:rotateY(180deg)]"
-            style={{ backfaceVisibility: 'hidden' }}
+            className="absolute inset-0 rounded-2xl p-8 flex flex-col items-center justify-center shadow-lg border-2 border-teal-200 [transform:rotateY(180deg)]"
+            style={{ 
+              backfaceVisibility: 'hidden',
+              background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)'
+            }}
           >
-            {currentCard.back}
+            <div className="absolute top-4 left-4 text-white/60 text-sm font-medium">
+              ANSWER
+            </div>
+            <p className="text-white text-lg sm:text-xl text-center leading-relaxed">
+              {currentCard.back}
+            </p>
           </div>
         </div>
       </div>
 
-      <p className="text-center text-sm text-gray-500">Click card to flip</p>
-
-      <div className="flex items-center justify-between">
+      {/* Action Buttons */}
+      <div className="grid grid-cols-3 gap-3">
         <button
-          onClick={prevCard}
-          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+          onClick={markLearning}
+          className="flex flex-col items-center gap-2 p-4 bg-amber-50 border-2 border-amber-200 rounded-xl hover:bg-amber-100 transition-colors"
         >
-          Previous
+          <span className="text-2xl">📖</span>
+          <span className="text-sm font-medium text-amber-700">Still Learning</span>
+        </button>
+        <button
+          onClick={() => setIsFlipped(!isFlipped)}
+          className="flex flex-col items-center gap-2 p-4 bg-gray-50 border-2 border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
+        >
+          <span className="text-2xl">🔄</span>
+          <span className="text-sm font-medium text-gray-700">Flip Card</span>
         </button>
         <button
           onClick={markKnown}
-          className="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 flex items-center gap-2"
+          className="flex flex-col items-center gap-2 p-4 bg-green-50 border-2 border-green-200 rounded-xl hover:bg-green-100 transition-colors"
         >
-          <CheckCircle className="w-4 h-4" />
-          I Know This
-        </button>
-        <button
-          onClick={nextCard}
-          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-        >
-          Next
+          <span className="text-2xl">✓</span>
+          <span className="text-sm font-medium text-green-700">Got It!</span>
         </button>
       </div>
 
-      {/* Progress */}
-      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-green-500 transition-all"
-          style={{ width: `${(knownCards.size / cards.length) * 100}%` }}
-        />
+      {/* Progress Bar */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm text-gray-600">
+          <span>Progress</span>
+          <span>{Math.round(progressPercentage)}% mastered</span>
+        </div>
+        <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-full flex">
+            <div
+              className="h-full bg-green-500 transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
+            />
+            <div
+              className="h-full bg-amber-400 transition-all duration-300"
+              style={{ width: `${(learningCards.size / cards.length) * 100}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Keyboard Shortcuts Help */}
+      <div className="text-center text-xs text-gray-400">
+        Use arrow keys to navigate • Space to flip
       </div>
     </div>
   );

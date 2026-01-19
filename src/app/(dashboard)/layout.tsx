@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import Banner from '@/components/Banner';
 
 export default function DashboardLayout({
   children,
@@ -157,6 +158,9 @@ export default function DashboardLayout({
             <div className="w-8 lg:hidden" />
           </div>
         </header>
+
+        {/* Banner */}
+        <Banner />
 
         {/* Page content */}
         <main className="p-6 lg:p-8">{children}</main>

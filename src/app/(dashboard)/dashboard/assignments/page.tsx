@@ -24,7 +24,7 @@ export default function AssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<AssignmentStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<AssignmentStatus | 'all'>('pending');
   const [priorityFilter, setPriorityFilter] = useState<AssignmentPriority | 'all'>('all');
 
   useEffect(() => {

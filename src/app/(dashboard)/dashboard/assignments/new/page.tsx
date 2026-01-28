@@ -3,22 +3,30 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Wand2, Mic, AlertCircle, Upload, FileText, X, File } from 'lucide-react';
+import { ArrowLeft, Wand2, AlertCircle, Upload, X, Users, Sparkles } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase/client';
-import { CreateAssignmentInput, Course } from '@/types';
+import { CreateAssignmentInput, Course, SharedCourse } from '@/types';
+
+interface SharedCourseWithRole extends SharedCourse {
+  user_role: string;
+}
 
 export default function NewAssignmentPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [sharedCourses, setSharedCourses] = useState<SharedCourseWithRole[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showAiInput, setShowAiInput] = useState(false);
+  const [showAiInput, setShowAiInput] = useState(true); // Default to true - AI parsing shown by default
   const [aiText, setAiText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [extractingText, setExtractingText] = useState(false);
+  const [selectedSharedCourse, setSelectedSharedCourse] = useState<string>('');
+  const [suggestedSharedCourse, setSuggestedSharedCourse] = useState<string | null>(null);
+  const [suggestingCourse, setSuggestingCourse] = useState(false);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<CreateAssignmentInput>({
     defaultValues: {
@@ -31,19 +39,36 @@ export default function NewAssignmentPage() {
   const watchedValues = watch();
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase
+      // Fetch personal courses
+      const { data: coursesData } = await supabase
         .from('courses')
         .select('*')
         .eq('user_id', user.id)
         .order('name');
 
-      if (data) setCourses(data);
+      if (coursesData) setCourses(coursesData);
+
+      // Fetch shared courses
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        try {
+          const res = await fetch('/api/shared-courses', {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+          if (res.ok) {
+            const sharedData = await res.json();
+            setSharedCourses(sharedData);
+          }
+        } catch (err) {
+          console.error('Failed to fetch shared courses:', err);
+        }
+      }
     };
-    fetchCourses();
+    fetchData();
   }, []);
 
   const onSubmit = async (data: CreateAssignmentInput) => {
@@ -53,6 +78,9 @@ export default function NewAssignmentPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No session');
 
       // Clean up the data before insert
       const insertData = {
@@ -66,19 +94,43 @@ export default function NewAssignmentPage() {
         status: 'pending',
       };
 
-      console.log('Inserting assignment:', insertData); // Debug log
-
-      const { data: result, error: insertError } = await supabase
+      // Create local assignment
+      const { error: insertError } = await supabase
         .from('assignments')
         .insert(insertData)
         .select();
 
-      console.log('Insert result:', result, 'Error:', insertError); // Debug log
-
       if (insertError) throw insertError;
+
+      // If a shared course is selected, also create a shared assignment
+      if (selectedSharedCourse) {
+        try {
+          const res = await fetch(`/api/shared-courses/${selectedSharedCourse}/assignments`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              title: data.title,
+              description: data.description || null,
+              due_date: data.due_date || null,
+              priority: data.priority || 'medium',
+              estimated_duration: data.estimated_duration || 60,
+            }),
+          });
+          
+          if (!res.ok) {
+            console.error('Failed to create shared assignment');
+          }
+        } catch (sharedErr) {
+          console.error('Error creating shared assignment:', sharedErr);
+        }
+      }
+
       router.push('/dashboard/assignments');
     } catch (err) {
-      console.error('Assignment creation error:', err); // Debug log
+      console.error('Assignment creation error:', err);
       setError(err instanceof Error ? err.message : 'Failed to create assignment');
     } finally {
       setLoading(false);
@@ -100,7 +152,6 @@ export default function NewAssignmentPage() {
       if (!response.ok) throw new Error('Failed to parse text');
 
       const parsed = await response.json();
-      console.log('AI Parsed:', parsed); // Debug log
       
       setValue('title', parsed.title || '', { shouldValidate: true, shouldDirty: true });
       setValue('description', parsed.description || '', { shouldValidate: true, shouldDirty: true });
@@ -110,10 +161,44 @@ export default function NewAssignmentPage() {
       }
       setValue('priority', parsed.priority || 'medium', { shouldValidate: true, shouldDirty: true });
       setValue('estimated_duration', parsed.estimated_duration || 60, { shouldValidate: true, shouldDirty: true });
+      
+      // Suggest a shared course based on the parsed content
+      if (sharedCourses.length > 0) {
+        setSuggestingCourse(true);
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            const suggestRes = await fetch('/api/suggest-shared-course', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({
+                title: parsed.title,
+                description: parsed.description,
+              }),
+            });
+            
+            if (suggestRes.ok) {
+              const { suggested_course_id } = await suggestRes.json();
+              if (suggested_course_id) {
+                setSuggestedSharedCourse(suggested_course_id);
+                setSelectedSharedCourse(suggested_course_id);
+              }
+            }
+          }
+        } catch (suggestErr) {
+          console.error('Failed to suggest shared course:', suggestErr);
+        } finally {
+          setSuggestingCourse(false);
+        }
+      }
+      
       setShowAiInput(false);
-      setAiText(''); // Clear the AI input
-      setUploadedFile(null); // Clear uploaded file
-    } catch (err) {
+      setAiText('');
+      setUploadedFile(null);
+    } catch {
       setError('Failed to parse text with AI. Please try again.');
     } finally {
       setAiLoading(false);
@@ -430,6 +515,47 @@ export default function NewAssignmentPage() {
             className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
           />
         </div>
+
+        {/* Shared Course Selection */}
+        {sharedCourses.length > 0 && (
+          <div className="p-4 bg-cyan-100 border-3 border-black">
+            <div className="flex items-center gap-2 mb-3">
+              <Users className="h-5 w-5 text-black" />
+              <label htmlFor="shared_course" className="text-sm font-bold text-black">
+                Also share to a Shared Course
+              </label>
+              {suggestedSharedCourse && selectedSharedCourse === suggestedSharedCourse && (
+                <span className="flex items-center gap-1 px-2 py-0.5 bg-violet-300 border border-black text-xs font-bold">
+                  <Sparkles className="h-3 w-3" />
+                  AI Suggested
+                </span>
+              )}
+            </div>
+            <select
+              id="shared_course"
+              value={selectedSharedCourse}
+              onChange={(e) => setSelectedSharedCourse(e.target.value)}
+              disabled={suggestingCourse}
+              className="w-full px-4 py-3 border-3 border-black focus:ring-0 focus:border-black outline-none text-black bg-white font-medium"
+            >
+              <option value="">Don&apos;t share to a course</option>
+              {sharedCourses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.name} {suggestedSharedCourse === course.id ? '✨ (AI Suggested)' : ''}
+                </option>
+              ))}
+            </select>
+            {suggestingCourse && (
+              <p className="mt-2 text-xs text-gray-600 font-medium flex items-center gap-2">
+                <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-black" />
+                Finding best matching course...
+              </p>
+            )}
+            <p className="mt-2 text-xs text-gray-600 font-medium">
+              Selecting a shared course will also post this assignment to your classmates
+            </p>
+          </div>
+        )}
 
         {/* Submit */}
         <div className="flex gap-4">

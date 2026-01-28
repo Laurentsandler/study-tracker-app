@@ -83,6 +83,7 @@ export default function SharedCoursesPage() {
   const handleSelectCourse = (course: (SharedCourse & { user_role: string })) => {
     setSelectedCourse(course);
     setCopyError(null);
+    setActionError(null);
     fetchAssignments(course.id);
   };
 
@@ -365,7 +366,7 @@ export default function SharedCoursesPage() {
 
                 {(copyError || actionError) && (
                   <div className="mb-4 p-3 bg-red-200 border-2 border-black text-sm font-bold text-black flex items-center justify-between">
-                    <span>{copyError || actionError}</span>
+                    <span>{[copyError, actionError].filter(Boolean).join('. ')}</span>
                     <button onClick={() => { setCopyError(null); setActionError(null); }} className="hover:text-red-700">
                       <X className="h-4 w-4" />
                     </button>
@@ -423,14 +424,12 @@ export default function SharedCoursesPage() {
                             {/* Copy Button */}
                             <button
                               onClick={() => handleCopyAssignment(assignment.id)}
-                              disabled={assignment.is_copied || copyingId === assignment.id || assignment.is_dismissed}
+                              disabled={assignment.is_copied || copyingId === assignment.id}
                               className={`flex items-center gap-2 px-3 py-2 font-bold border-2 border-black transition-all ${
                                 assignment.is_copied
                                   ? 'bg-emerald-300 cursor-default'
                                   : copyingId === assignment.id
                                   ? 'bg-gray-200 cursor-wait'
-                                  : assignment.is_dismissed
-                                  ? 'bg-gray-300 cursor-not-allowed'
                                   : 'bg-yellow-300 shadow-[2px_2px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_#000]'
                               }`}
                             >

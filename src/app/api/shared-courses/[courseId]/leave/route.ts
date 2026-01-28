@@ -22,9 +22,9 @@ export async function POST(
       return NextResponse.json({ error: 'Not a member of this course' }, { status: 403 });
     }
 
-    // Owners cannot leave - they must delete the course or transfer ownership
+    // Owners cannot leave - they must delete the course
     if (membership.role === 'owner') {
-      return NextResponse.json({ error: 'Course owners cannot leave. You must delete the course or transfer ownership first.' }, { status: 400 });
+      return NextResponse.json({ error: 'Course owners cannot leave. You must delete the course first.' }, { status: 400 });
     }
 
     const supabase = createServerClient();

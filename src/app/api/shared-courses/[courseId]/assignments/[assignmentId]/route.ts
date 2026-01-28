@@ -44,11 +44,12 @@ export async function DELETE(
       return NextResponse.json({ error: 'Only course owners or the assignment creator can delete this assignment' }, { status: 403 });
     }
 
-    // Delete the assignment
+    // Delete the assignment (include courseId for defense in depth)
     const { error: deleteError } = await supabase
       .from('shared_assignments')
       .delete()
-      .eq('id', assignmentId);
+      .eq('id', assignmentId)
+      .eq('shared_course_id', courseId);
 
     if (deleteError) {
       console.error('Error deleting assignment:', deleteError);

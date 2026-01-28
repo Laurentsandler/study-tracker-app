@@ -36,16 +36,17 @@ export async function POST(
       return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
     }
 
-    // Check if already dismissed
+    // Check if already dismissed - use maybeSingle to avoid error when no record exists
     const { data: existingDismissal } = await supabase
       .from('user_dismissed_shared_assignments')
       .select('id')
       .eq('shared_assignment_id', assignmentId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
+    // If already dismissed, make the operation idempotent - return success
     if (existingDismissal) {
-      return NextResponse.json({ error: 'Assignment already dismissed' }, { status: 400 });
+      return NextResponse.json({ message: 'Assignment dismissed successfully' });
     }
 
     // Dismiss the assignment

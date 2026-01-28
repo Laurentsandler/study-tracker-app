@@ -38,22 +38,27 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id);
 
     if (memberError || !memberships || memberships.length === 0) {
+      if (memberError) {
+        console.error('Error fetching shared course memberships:', memberError);
+      }
       return NextResponse.json({ suggested_course_id: null });
     }
 
-    // Extract course info
-    const courses: SharedCourseInfo[] = memberships.map(m => {
-      const sharedCourse = m.shared_courses as unknown as {
-        id: string;
-        name: string;
-        description: string | null;
-      };
-      return {
-        id: sharedCourse.id,
-        name: sharedCourse.name,
-        description: sharedCourse.description,
-      };
-    });
+    // Extract course info, filtering out any null entries
+    const courses: SharedCourseInfo[] = memberships
+      .filter(m => m.shared_courses != null)
+      .map(m => {
+        const sharedCourse = m.shared_courses as unknown as {
+          id: string;
+          name: string;
+          description: string | null;
+        };
+        return {
+          id: sharedCourse.id,
+          name: sharedCourse.name,
+          description: sharedCourse.description,
+        };
+      });
 
     if (courses.length === 0) {
       return NextResponse.json({ suggested_course_id: null });

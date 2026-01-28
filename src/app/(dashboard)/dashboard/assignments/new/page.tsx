@@ -121,10 +121,18 @@ export default function NewAssignmentPage() {
           });
           
           if (!res.ok) {
-            console.error('Failed to create shared assignment');
+            const sharedCourse = sharedCourses.find(c => c.id === selectedSharedCourse);
+            setError(`Assignment created, but failed to share to "${sharedCourse?.name || 'shared course'}". You can try sharing it later.`);
+            // Still redirect after a short delay so user can see the message
+            setTimeout(() => router.push('/dashboard/assignments'), 2000);
+            return;
           }
         } catch (sharedErr) {
           console.error('Error creating shared assignment:', sharedErr);
+          const sharedCourse = sharedCourses.find(c => c.id === selectedSharedCourse);
+          setError(`Assignment created, but failed to share to "${sharedCourse?.name || 'shared course'}". You can try sharing it later.`);
+          setTimeout(() => router.push('/dashboard/assignments'), 2000);
+          return;
         }
       }
 
@@ -541,7 +549,7 @@ export default function NewAssignmentPage() {
               <option value="">Don&apos;t share to a course</option>
               {sharedCourses.map((course) => (
                 <option key={course.id} value={course.id}>
-                  {course.name} {suggestedSharedCourse === course.id ? '✨ (AI Suggested)' : ''}
+                  {course.name}
                 </option>
               ))}
             </select>
@@ -568,7 +576,7 @@ export default function NewAssignmentPage() {
           </button>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || suggestingCourse}
             className="flex-1 py-3 bg-yellow-300 border-3 border-black text-black font-bold shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {loading ? 'Creating...' : 'Create Assignment'}

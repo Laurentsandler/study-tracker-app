@@ -15,6 +15,7 @@ import {
   X,
   FileText,
   Sparkles,
+  Users,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import Banner from '@/components/Banner';
@@ -52,6 +53,7 @@ export default function DashboardLayout({
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, color: 'bg-violet-300' },
     { href: '/dashboard/assignments', label: 'Assignments', icon: ClipboardList, color: 'bg-sky-300' },
+    { href: '/dashboard/shared-courses', label: 'Shared Courses', icon: Users, color: 'bg-cyan-300' },
     { href: '/dashboard/worklogs', label: 'Work Logs', icon: FileText, color: 'bg-amber-300' },
     { href: '/dashboard/study', label: 'Help Me Study', icon: Sparkles, color: 'bg-pink-300' },
     { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar, color: 'bg-emerald-300' },

@@ -38,9 +38,10 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch assignments' }, { status: 500 });
     }
 
-    // Check which assignments the user has already copied
+    // Check which assignments the user has already copied or dismissed
     const assignmentIds = assignments?.map(a => a.id) || [];
     if (assignmentIds.length > 0) {
+      // Check copies
       const { data: copies } = await supabase
         .from('user_shared_assignment_copies')
         .select('shared_assignment_id')
@@ -48,8 +49,19 @@ export async function GET(
         .in('shared_assignment_id', assignmentIds);
 
       const copiedIds = new Set(copies?.map(c => c.shared_assignment_id) || []);
+
+      // Check dismissed assignments
+      const { data: dismissed } = await supabase
+        .from('user_dismissed_shared_assignments')
+        .select('shared_assignment_id')
+        .eq('user_id', user.id)
+        .in('shared_assignment_id', assignmentIds);
+
+      const dismissedIds = new Set(dismissed?.map(d => d.shared_assignment_id) || []);
+
       assignments?.forEach(a => {
         a.is_copied = copiedIds.has(a.id);
+        a.is_dismissed = dismissedIds.has(a.id);
       });
     }
 

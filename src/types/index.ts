@@ -335,6 +335,7 @@ export interface SharedAssignment {
   shared_course?: SharedCourse;
   creator?: Profile;
   is_copied?: boolean;
+  is_dismissed?: boolean;
 }
 
 export interface UserSharedAssignmentCopy {
@@ -343,6 +344,13 @@ export interface UserSharedAssignmentCopy {
   user_id: string;
   local_assignment_id: string | null;
   copied_at: string;
+}
+
+export interface UserDismissedSharedAssignment {
+  id: string;
+  shared_assignment_id: string;
+  user_id: string;
+  dismissed_at: string;
 }
 
 // Form types for shared courses

@@ -563,6 +563,184 @@ USING (
 );
 
 -- =============================================
+-- 8. SHARED COURSES FEATURE
+-- =============================================
+
+-- Shared Courses (courses that are shared among multiple users)
+CREATE TABLE IF NOT EXISTS shared_courses (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    description TEXT,
+    color TEXT DEFAULT '#3b82f6',
+    created_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    invite_code TEXT UNIQUE NOT NULL DEFAULT encode(gen_random_bytes(6), 'hex'),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Shared Course Members (tracks which users are members of shared courses)
+CREATE TABLE IF NOT EXISTS shared_course_members (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    shared_course_id UUID REFERENCES shared_courses(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+    role TEXT DEFAULT 'member' CHECK (role IN ('owner', 'member')),
+    joined_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(shared_course_id, user_id)
+);
+
+-- Shared Assignments (assignments posted to shared courses)
+CREATE TABLE IF NOT EXISTS shared_assignments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    shared_course_id UUID REFERENCES shared_courses(id) ON DELETE CASCADE NOT NULL,
+    created_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    due_date TIMESTAMPTZ,
+    priority assignment_priority DEFAULT 'medium',
+    estimated_duration INTEGER DEFAULT 60,
+    raw_input_text TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Track which users have copied a shared assignment to their local assignments
+CREATE TABLE IF NOT EXISTS user_shared_assignment_copies (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    shared_assignment_id UUID REFERENCES shared_assignments(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+    local_assignment_id UUID REFERENCES assignments(id) ON DELETE SET NULL,
+    copied_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(shared_assignment_id, user_id)
+);
+
+-- Indexes for shared courses
+CREATE INDEX IF NOT EXISTS idx_shared_courses_created_by ON shared_courses(created_by);
+CREATE INDEX IF NOT EXISTS idx_shared_courses_invite_code ON shared_courses(invite_code);
+CREATE INDEX IF NOT EXISTS idx_shared_course_members_user_id ON shared_course_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_shared_course_members_course_id ON shared_course_members(shared_course_id);
+CREATE INDEX IF NOT EXISTS idx_shared_assignments_course_id ON shared_assignments(shared_course_id);
+CREATE INDEX IF NOT EXISTS idx_shared_assignments_created_by ON shared_assignments(created_by);
+CREATE INDEX IF NOT EXISTS idx_user_shared_assignment_copies_user ON user_shared_assignment_copies(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_shared_assignment_copies_shared ON user_shared_assignment_copies(shared_assignment_id);
+
+-- Enable RLS on shared course tables
+ALTER TABLE shared_courses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE shared_course_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE shared_assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_shared_assignment_copies ENABLE ROW LEVEL SECURITY;
+
+-- Shared Courses Policies
+DROP POLICY IF EXISTS "Users can view shared courses they are members of" ON shared_courses;
+CREATE POLICY "Users can view shared courses they are members of" ON shared_courses
+    FOR SELECT USING (
+        id IN (
+            SELECT shared_course_id FROM shared_course_members WHERE user_id = auth.uid()
+        )
+    );
+
+DROP POLICY IF EXISTS "Users can create shared courses" ON shared_courses;
+CREATE POLICY "Users can create shared courses" ON shared_courses
+    FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "Owners can update shared courses" ON shared_courses;
+CREATE POLICY "Owners can update shared courses" ON shared_courses
+    FOR UPDATE USING (
+        id IN (
+            SELECT shared_course_id FROM shared_course_members 
+            WHERE user_id = auth.uid() AND role = 'owner'
+        )
+    );
+
+DROP POLICY IF EXISTS "Owners can delete shared courses" ON shared_courses;
+CREATE POLICY "Owners can delete shared courses" ON shared_courses
+    FOR DELETE USING (
+        id IN (
+            SELECT shared_course_id FROM shared_course_members 
+            WHERE user_id = auth.uid() AND role = 'owner'
+        )
+    );
+
+-- Shared Course Members Policies
+DROP POLICY IF EXISTS "Users can view members of their shared courses" ON shared_course_members;
+CREATE POLICY "Users can view members of their shared courses" ON shared_course_members
+    FOR SELECT USING (
+        shared_course_id IN (
+            SELECT shared_course_id FROM shared_course_members WHERE user_id = auth.uid()
+        )
+    );
+
+DROP POLICY IF EXISTS "Users can join shared courses" ON shared_course_members;
+CREATE POLICY "Users can join shared courses" ON shared_course_members
+    FOR INSERT WITH CHECK (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Owners can manage members" ON shared_course_members;
+CREATE POLICY "Owners can manage members" ON shared_course_members
+    FOR DELETE USING (
+        shared_course_id IN (
+            SELECT shared_course_id FROM shared_course_members 
+            WHERE user_id = auth.uid() AND role = 'owner'
+        )
+        OR user_id = auth.uid()
+    );
+
+-- Shared Assignments Policies
+DROP POLICY IF EXISTS "Members can view shared assignments" ON shared_assignments;
+CREATE POLICY "Members can view shared assignments" ON shared_assignments
+    FOR SELECT USING (
+        shared_course_id IN (
+            SELECT shared_course_id FROM shared_course_members WHERE user_id = auth.uid()
+        )
+    );
+
+DROP POLICY IF EXISTS "Members can create shared assignments" ON shared_assignments;
+CREATE POLICY "Members can create shared assignments" ON shared_assignments
+    FOR INSERT WITH CHECK (
+        shared_course_id IN (
+            SELECT shared_course_id FROM shared_course_members WHERE user_id = auth.uid()
+        )
+    );
+
+DROP POLICY IF EXISTS "Creators can update shared assignments" ON shared_assignments;
+CREATE POLICY "Creators can update shared assignments" ON shared_assignments
+    FOR UPDATE USING (created_by = auth.uid());
+
+DROP POLICY IF EXISTS "Creators or owners can delete shared assignments" ON shared_assignments;
+CREATE POLICY "Creators or owners can delete shared assignments" ON shared_assignments
+    FOR DELETE USING (
+        created_by = auth.uid() OR
+        shared_course_id IN (
+            SELECT shared_course_id FROM shared_course_members 
+            WHERE user_id = auth.uid() AND role = 'owner'
+        )
+    );
+
+-- User Shared Assignment Copies Policies
+DROP POLICY IF EXISTS "Users can view their assignment copies" ON user_shared_assignment_copies;
+CREATE POLICY "Users can view their assignment copies" ON user_shared_assignment_copies
+    FOR SELECT USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Users can create their assignment copies" ON user_shared_assignment_copies;
+CREATE POLICY "Users can create their assignment copies" ON user_shared_assignment_copies
+    FOR INSERT WITH CHECK (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Users can delete their assignment copies" ON user_shared_assignment_copies;
+CREATE POLICY "Users can delete their assignment copies" ON user_shared_assignment_copies
+    FOR DELETE USING (user_id = auth.uid());
+
+-- Triggers for updated_at
+DROP TRIGGER IF EXISTS update_shared_courses_updated_at ON shared_courses;
+CREATE TRIGGER update_shared_courses_updated_at
+    BEFORE UPDATE ON shared_courses
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_shared_assignments_updated_at ON shared_assignments;
+CREATE TRIGGER update_shared_assignments_updated_at
+    BEFORE UPDATE ON shared_assignments
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- =============================================
 -- SETUP COMPLETE!
 -- =============================================
 -- After running this SQL:

@@ -291,3 +291,76 @@ export interface StudyPlanOverview {
   recommendedFocus: string[];
   estimatedStudyTime: number; // in minutes
 }
+
+// Shared Courses Types
+export type SharedCourseMemberRole = 'owner' | 'member';
+
+export interface SharedCourse {
+  id: string;
+  name: string;
+  description: string | null;
+  color: string;
+  created_by: string | null;
+  invite_code: string;
+  created_at: string;
+  updated_at: string;
+  // Joined data
+  member_count?: number;
+  members?: SharedCourseMember[];
+}
+
+export interface SharedCourseMember {
+  id: string;
+  shared_course_id: string;
+  user_id: string;
+  role: SharedCourseMemberRole;
+  joined_at: string;
+  // Joined data
+  profile?: Profile;
+}
+
+export interface SharedAssignment {
+  id: string;
+  shared_course_id: string;
+  created_by: string | null;
+  title: string;
+  description: string | null;
+  due_date: string | null;
+  priority: AssignmentPriority;
+  estimated_duration: number;
+  raw_input_text: string | null;
+  created_at: string;
+  updated_at: string;
+  // Joined data
+  shared_course?: SharedCourse;
+  creator?: Profile;
+  is_copied?: boolean;
+}
+
+export interface UserSharedAssignmentCopy {
+  id: string;
+  shared_assignment_id: string;
+  user_id: string;
+  local_assignment_id: string | null;
+  copied_at: string;
+}
+
+// Form types for shared courses
+export interface CreateSharedCourseInput {
+  name: string;
+  description?: string;
+  color?: string;
+}
+
+export interface JoinSharedCourseInput {
+  invite_code: string;
+}
+
+export interface CreateSharedAssignmentInput {
+  shared_course_id: string;
+  title: string;
+  description?: string;
+  due_date?: string;
+  priority?: AssignmentPriority;
+  estimated_duration?: number;
+}

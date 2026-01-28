@@ -1,18 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/client';
-
-// Helper to get user from auth header
-async function getUserFromRequest(request: NextRequest) {
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
-  
-  const token = authHeader.split(' ')[1];
-  const supabase = createServerClient();
-  const { data: { user } } = await supabase.auth.getUser(token);
-  return user;
-}
+import { getUserFromRequest, verifySharedCourseMembership } from '@/lib/api/helpers';
 
 // POST /api/shared-courses/[courseId]/assignments/[assignmentId]/copy
 // Copy a shared assignment to the user's local assignments
@@ -27,19 +15,14 @@ export async function POST(
     }
 
     const { courseId, assignmentId } = await params;
-    const supabase = createServerClient();
 
     // Verify user is a member of the course
-    const { data: membership } = await supabase
-      .from('shared_course_members')
-      .select('role')
-      .eq('shared_course_id', courseId)
-      .eq('user_id', user.id)
-      .single();
-
+    const membership = await verifySharedCourseMembership(courseId, user.id);
     if (!membership) {
       return NextResponse.json({ error: 'Not a member of this course' }, { status: 403 });
     }
+
+    const supabase = createServerClient();
 
     // Check if already copied
     const { data: existingCopy } = await supabase
@@ -78,12 +61,14 @@ export async function POST(
 
     let localCourseId = null;
     if (sharedCourse) {
+      // Use maybeSingle() to handle case where no match or multiple matches exist
       const { data: localCourse } = await supabase
         .from('courses')
         .select('id')
         .eq('user_id', user.id)
         .ilike('name', sharedCourse.name)
-        .single();
+        .limit(1)
+        .maybeSingle();
       
       localCourseId = localCourse?.id || null;
     }
@@ -110,7 +95,7 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to copy assignment' }, { status: 500 });
     }
 
-    // Track the copy
+    // Track the copy - this is important to prevent duplicate copies
     const { error: copyError } = await supabase
       .from('user_shared_assignment_copies')
       .insert({
@@ -121,7 +106,9 @@ export async function POST(
 
     if (copyError) {
       console.error('Error tracking copy:', copyError);
-      // Assignment was created but copy tracking failed - don't fail the request
+      // If tracking fails, delete the local assignment to maintain data integrity
+      await supabase.from('assignments').delete().eq('id', localAssignment.id);
+      return NextResponse.json({ error: 'Failed to track assignment copy' }, { status: 500 });
     }
 
     return NextResponse.json({

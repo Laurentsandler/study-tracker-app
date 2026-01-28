@@ -1,18 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/client';
-
-// Helper to get user from auth header
-async function getUserFromRequest(request: NextRequest) {
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
-  
-  const token = authHeader.split(' ')[1];
-  const supabase = createServerClient();
-  const { data: { user } } = await supabase.auth.getUser(token);
-  return user;
-}
+import { getUserFromRequest } from '@/lib/api/helpers';
 
 // POST /api/shared-courses/join - Join a shared course using invite code
 export async function POST(request: NextRequest) {
@@ -31,7 +19,8 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerClient();
 
-    // Find the course by invite code
+    // Find the course by invite code (case-insensitive to handle user input)
+    // PostgreSQL's encode(gen_random_bytes(6), 'hex') generates lowercase hex
     const { data: course, error: courseError } = await supabase
       .from('shared_courses')
       .select('*')

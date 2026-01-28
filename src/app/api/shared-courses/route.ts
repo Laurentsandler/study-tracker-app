@@ -1,18 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/client';
-
-// Helper to get user from auth header
-async function getUserFromRequest(request: NextRequest) {
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
-  
-  const token = authHeader.split(' ')[1];
-  const supabase = createServerClient();
-  const { data: { user } } = await supabase.auth.getUser(token);
-  return user;
-}
+import { getUserFromRequest, isValidHexColor } from '@/lib/api/helpers';
 
 // GET /api/shared-courses - List shared courses the user is a member of
 export async function GET(request: NextRequest) {
@@ -119,6 +107,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Course name is required' }, { status: 400 });
     }
 
+    // Validate color format if provided
+    const validatedColor = color && isValidHexColor(color) ? color : '#3b82f6';
+
     const supabase = createServerClient();
 
     // Create the shared course
@@ -127,7 +118,7 @@ export async function POST(request: NextRequest) {
       .insert({
         name: name.trim(),
         description: description?.trim() || null,
-        color: color || '#3b82f6',
+        color: validatedColor,
         created_by: user.id,
       })
       .select()

@@ -1,30 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/client';
-
-// Helper to get user from auth header
-async function getUserFromRequest(request: NextRequest) {
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
-  
-  const token = authHeader.split(' ')[1];
-  const supabase = createServerClient();
-  const { data: { user } } = await supabase.auth.getUser(token);
-  return user;
-}
-
-// Helper to verify membership
-async function verifyMembership(supabase: ReturnType<typeof createServerClient>, courseId: string, userId: string) {
-  const { data: membership } = await supabase
-    .from('shared_course_members')
-    .select('role')
-    .eq('shared_course_id', courseId)
-    .eq('user_id', userId)
-    .single();
-  
-  return membership;
-}
+import { getUserFromRequest, verifySharedCourseMembership, isValidPriority, isValidDuration } from '@/lib/api/helpers';
 
 // GET /api/shared-courses/[courseId]/assignments - List shared assignments
 export async function GET(
@@ -38,13 +14,14 @@ export async function GET(
     }
 
     const { courseId } = await params;
-    const supabase = createServerClient();
 
     // Verify membership
-    const membership = await verifyMembership(supabase, courseId, user.id);
+    const membership = await verifySharedCourseMembership(courseId, user.id);
     if (!membership) {
       return NextResponse.json({ error: 'Not a member of this course' }, { status: 403 });
     }
+
+    const supabase = createServerClient();
 
     // Get shared assignments
     const { data: assignments, error } = await supabase
@@ -102,13 +79,17 @@ export async function POST(
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
 
-    const supabase = createServerClient();
+    // Validate priority and duration
+    const validatedPriority = isValidPriority(priority) ? priority : 'medium';
+    const validatedDuration = isValidDuration(estimated_duration) ? estimated_duration : 60;
 
     // Verify membership
-    const membership = await verifyMembership(supabase, courseId, user.id);
+    const membership = await verifySharedCourseMembership(courseId, user.id);
     if (!membership) {
       return NextResponse.json({ error: 'Not a member of this course' }, { status: 403 });
     }
+
+    const supabase = createServerClient();
 
     // Create the shared assignment
     const { data: assignment, error } = await supabase
@@ -119,8 +100,8 @@ export async function POST(
         title: title.trim(),
         description: description?.trim() || null,
         due_date: due_date || null,
-        priority: priority || 'medium',
-        estimated_duration: estimated_duration || 60,
+        priority: validatedPriority,
+        estimated_duration: validatedDuration,
         raw_input_text: raw_input_text || null,
       })
       .select(`

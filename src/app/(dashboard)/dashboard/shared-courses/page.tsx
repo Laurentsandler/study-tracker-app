@@ -6,6 +6,16 @@ import { Plus, Users, Copy, Check, X, Share2, UserPlus, Loader2 } from 'lucide-r
 import { supabase } from '@/lib/supabase/client';
 import { SharedCourse, SharedAssignment } from '@/types';
 
+// Helper to convert hex color to rgba with opacity
+function hexToRgba(hex: string, opacity: number): string {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return `rgba(59, 130, 246, ${opacity})`; // fallback to blue
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
 export default function SharedCoursesPage() {
   const [courses, setCourses] = useState<(SharedCourse & { user_role: string })[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,6 +24,8 @@ export default function SharedCoursesPage() {
   const [selectedCourse, setSelectedCourse] = useState<(SharedCourse & { user_role: string }) | null>(null);
   const [assignments, setAssignments] = useState<SharedAssignment[]>([]);
   const [loadingAssignments, setLoadingAssignments] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
+  const [copyingId, setCopyingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCourses();
@@ -60,6 +72,7 @@ export default function SharedCoursesPage() {
 
   const handleSelectCourse = (course: (SharedCourse & { user_role: string })) => {
     setSelectedCourse(course);
+    setCopyError(null);
     fetchAssignments(course.id);
   };
 
@@ -69,6 +82,9 @@ export default function SharedCoursesPage() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
+    setCopyingId(assignmentId);
+    setCopyError(null);
+
     try {
       const res = await fetch(`/api/shared-courses/${selectedCourse.id}/assignments/${assignmentId}/copy`, {
         method: 'POST',
@@ -77,9 +93,15 @@ export default function SharedCoursesPage() {
       if (res.ok) {
         // Refresh assignments to show updated copy status
         fetchAssignments(selectedCourse.id);
+      } else {
+        const data = await res.json();
+        setCopyError(data.error || 'Failed to copy assignment');
       }
     } catch (error) {
       console.error('Error copying assignment:', error);
+      setCopyError('Failed to copy assignment. Please try again.');
+    } finally {
+      setCopyingId(null);
     }
   };
 
@@ -178,7 +200,7 @@ export default function SharedCoursesPage() {
               {/* Course Header */}
               <div
                 className="p-4 border-b-3 border-black"
-                style={{ backgroundColor: selectedCourse.color + '40' }}
+                style={{ backgroundColor: hexToRgba(selectedCourse.color, 0.25) }}
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -208,6 +230,15 @@ export default function SharedCoursesPage() {
                     Add Assignment
                   </Link>
                 </div>
+
+                {copyError && (
+                  <div className="mb-4 p-3 bg-red-200 border-2 border-black text-sm font-bold text-black flex items-center justify-between">
+                    <span>{copyError}</span>
+                    <button onClick={() => setCopyError(null)} className="hover:text-red-700">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
 
                 {loadingAssignments ? (
                   <div className="flex justify-center py-8">
@@ -252,10 +283,12 @@ export default function SharedCoursesPage() {
                           </div>
                           <button
                             onClick={() => handleCopyAssignment(assignment.id)}
-                            disabled={assignment.is_copied}
+                            disabled={assignment.is_copied || copyingId === assignment.id}
                             className={`flex items-center gap-2 px-3 py-2 font-bold border-2 border-black transition-all ${
                               assignment.is_copied
                                 ? 'bg-emerald-300 cursor-default'
+                                : copyingId === assignment.id
+                                ? 'bg-gray-200 cursor-wait'
                                 : 'bg-yellow-300 shadow-[2px_2px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_#000]'
                             }`}
                           >
@@ -263,6 +296,11 @@ export default function SharedCoursesPage() {
                               <>
                                 <Check className="h-4 w-4" />
                                 <span className="text-sm">Copied</span>
+                              </>
+                            ) : copyingId === assignment.id ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span className="text-sm">Copying...</span>
                               </>
                             ) : (
                               <>

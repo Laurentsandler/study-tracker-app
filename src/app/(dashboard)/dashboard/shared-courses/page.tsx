@@ -460,7 +460,7 @@ export default function SharedCoursesPage() {
                                   ? 'bg-gray-200 cursor-wait'
                                   : assignment.is_dismissed
                                   ? 'bg-cyan-200 shadow-[2px_2px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_#000]'
-                                  : 'bg-gray-200 shadow-[2px_2px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_#000]'
+                                  : 'bg-orange-200 shadow-[2px_2px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_#000]'
                               }`}
                               title={assignment.is_dismissed ? 'Show this assignment' : 'Dismiss this assignment'}
                             >

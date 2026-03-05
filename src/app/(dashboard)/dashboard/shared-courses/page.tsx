@@ -125,18 +125,31 @@ export default function SharedCoursesPage() {
     setDismissingId(assignmentId);
     setActionError(null);
 
+    // Optimistic update: immediately reflect the new dismissed state in the UI
+    setAssignments(prev =>
+      prev.map(a => a.id === assignmentId ? { ...a, is_dismissed: !isDismissed } : a)
+    );
+
+    const rollback = () =>
+      setAssignments(prev =>
+        prev.map(a => a.id === assignmentId ? { ...a, is_dismissed: isDismissed } : a)
+      );
+
     try {
       const res = await fetch(`/api/shared-courses/${selectedCourse.id}/assignments/${assignmentId}/dismiss`, {
         method: isDismissed ? 'DELETE' : 'POST',
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (res.ok) {
+        // Sync with server state in background
         fetchAssignments(selectedCourse.id);
       } else {
+        rollback();
         const data = await res.json();
         setActionError(data.error || 'Failed to update assignment');
       }
     } catch (error) {
+      rollback();
       console.error('Error updating assignment:', error);
       setActionError('Failed to update assignment. Please try again.');
     } finally {

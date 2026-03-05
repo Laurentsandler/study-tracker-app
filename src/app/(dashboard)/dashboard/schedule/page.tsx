@@ -212,6 +212,10 @@ export default function SchedulePage() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
+    // Optimistic update: immediately remove the suggestion from the list
+    const removedSuggestion = suggestions.find(s => s.id === suggestionId);
+    setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
+
     const res = await fetch('/api/schedule/suggestions', {
       method: 'POST',
       headers: {
@@ -222,9 +226,13 @@ export default function SchedulePage() {
     });
 
     if (res.ok) {
-      setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
       if (action === 'accept') {
         fetchData(); // Refresh tasks
+      }
+    } else {
+      // Rollback optimistic update on failure by restoring just this suggestion
+      if (removedSuggestion) {
+        setSuggestions(prev => [...prev, removedSuggestion]);
       }
     }
   };
@@ -232,6 +240,10 @@ export default function SchedulePage() {
   const handleBulkAction = async (action: 'acceptAll' | 'dismissAll') => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
+
+    // Optimistic update: immediately clear all suggestions from the list
+    const previousSuggestions = [...suggestions];
+    setSuggestions([]);
 
     const res = await fetch('/api/schedule/suggestions', {
       method: 'POST',
@@ -243,10 +255,12 @@ export default function SchedulePage() {
     });
 
     if (res.ok) {
-      setSuggestions([]);
       if (action === 'acceptAll') {
         fetchData();
       }
+    } else {
+      // Rollback optimistic update on failure
+      setSuggestions(previousSuggestions);
     }
   };
 

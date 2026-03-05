@@ -72,6 +72,7 @@ export default function Banner() {
             </div>
           </div>
           <button
+            type="button"
             onClick={handleDismiss}
             className="p-2 bg-white border-3 border-black rounded-lg hover:bg-gray-100 transition-colors shrink-0 shadow-[2px_2px_0_0_#000]"
             aria-label="Dismiss banner"

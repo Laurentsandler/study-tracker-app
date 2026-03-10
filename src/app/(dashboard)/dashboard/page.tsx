@@ -19,11 +19,14 @@ import {
   ChevronUp,
   ChevronDown,
   Zap,
+  TrendingUp,
+  Target,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { Assignment, PlannedTask } from '@/types';
 import { formatDate, getDaysUntilDue, getPriorityColor, getStatusColor } from '@/lib/utils';
 import PomodoroTimer from '@/components/PomodoroTimer';
+import ProgressRing from '@/components/ui/ProgressRing';
 
 interface ScheduleSuggestion {
   id: string;
@@ -37,16 +40,25 @@ interface ScheduleSuggestion {
 
 // Neo-Brutalism priority styles
 const PRIORITY_STYLES = {
-  low: 'bg-emerald-300',
-  medium: 'bg-amber-300',
-  high: 'bg-rose-300',
+  low: 'bg-emerald-300 dark:bg-emerald-500',
+  medium: 'bg-amber-300 dark:bg-amber-500',
+  high: 'bg-rose-300 dark:bg-rose-500',
 };
 
 const STATUS_STYLES = {
-  pending: 'bg-gray-200',
-  in_progress: 'bg-sky-300',
-  completed: 'bg-emerald-300',
+  pending: 'bg-gray-200 dark:bg-gray-600',
+  in_progress: 'bg-sky-300 dark:bg-sky-500',
+  completed: 'bg-emerald-300 dark:bg-emerald-500',
 };
+
+function getGreeting(): { text: string; emoji: string } {
+  const hour = new Date().getHours();
+  if (hour < 6) return { text: 'Burning the midnight oil', emoji: '🌙' };
+  if (hour < 12) return { text: 'Good morning', emoji: '☀️' };
+  if (hour < 17) return { text: 'Good afternoon', emoji: '📚' };
+  if (hour < 21) return { text: 'Good evening', emoji: '🌆' };
+  return { text: 'Night owl mode', emoji: '🦉' };
+}
 
 export default function DashboardPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -57,6 +69,8 @@ export default function DashboardPage() {
   const [generating, setGenerating] = useState(false);
   const [showTimer, setShowTimer] = useState(true);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [totalAssignments, setTotalAssignments] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,6 +92,21 @@ export default function DashboardPage() {
       if (assignmentsData) {
         setAssignments(assignmentsData);
       }
+
+      // Fetch total and completed assignments for progress
+      const { count: totalCount } = await supabase
+        .from('assignments')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      const { count: doneCount } = await supabase
+        .from('assignments')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'completed');
+
+      setTotalAssignments(totalCount || 0);
+      setCompletedCount(doneCount || 0);
 
       // Fetch today's planned tasks
       const today = new Date().toISOString().split('T')[0];
@@ -227,26 +256,52 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-12 h-12 border-4 border-black border-t-yellow-300 animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-black dark:border-gray-600 border-t-yellow-300 dark:border-t-yellow-400 rounded-full animate-spin"></div>
       </div>
     );
   }
 
+  const greeting = getGreeting();
+  const completionPercent = totalAssignments > 0 ? Math.round((completedCount / totalAssignments) * 100) : 0;
+
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-black">Dashboard</h1>
-          <p className="text-gray-600 font-medium mt-1">Welcome back! Here&apos;s your study overview.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
+        <div className="flex items-center gap-4">
+          {/* Progress Ring */}
+          <div className="hidden sm:block">
+            <ProgressRing
+              progress={completionPercent}
+              size={64}
+              strokeWidth={5}
+              color="#a855f7"
+              bgColor="#d1d5db"
+            >
+              <span className="text-xs font-black text-black dark:text-gray-200">{completionPercent}%</span>
+            </ProgressRing>
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-black dark:text-white flex items-center gap-2">
+              <span>{greeting.emoji}</span> {greeting.text}!
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 font-medium mt-1">
+              {completedCount} of {totalAssignments} assignments completed
+              {stats.urgent > 0 && (
+                <span className="ml-2 text-rose-600 dark:text-rose-400 font-bold">
+                  • {stats.urgent} due soon
+                </span>
+              )}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowTimer(!showTimer)}
-            className={`flex items-center gap-2 px-4 py-3 font-bold border-3 border-black transition-all ${
+            className={`flex items-center gap-2 px-4 py-3 font-bold border-3 border-black dark:border-gray-600 rounded-xl transition-all ${
               showTimer 
-                ? 'bg-rose-300 shadow-[4px_4px_0_0_#000]' 
-                : 'bg-white shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000]'
+                ? 'bg-rose-300 dark:bg-rose-500 shadow-[4px_4px_0_0_#000] text-black dark:text-white' 
+                : 'bg-white dark:bg-gray-800 shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] text-black dark:text-gray-200'
             }`}
           >
             <Timer className="h-5 w-5" />
@@ -255,7 +310,7 @@ export default function DashboardPage() {
           </button>
           <Link
             href="/dashboard/assignments/new"
-            className="flex items-center gap-2 px-4 py-3 bg-yellow-300 font-bold border-3 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] transition-all"
+            className="flex items-center gap-2 px-4 py-3 bg-yellow-300 dark:bg-yellow-500 font-bold border-3 border-black dark:border-gray-600 rounded-xl shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] transition-all text-black"
           >
             <Plus className="h-5 w-5" />
             <span>New Assignment</span>
@@ -265,7 +320,7 @@ export default function DashboardPage() {
 
       {/* Pomodoro Timer (Collapsible) */}
       {showTimer && (
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-6 animate-fade-in-delay">
           <div className="lg:col-span-1">
             <PomodoroTimer 
               assignmentTitle={selectedAssignment?.title}
@@ -275,48 +330,48 @@ export default function DashboardPage() {
             />
           </div>
           <div className="lg:col-span-2">
-            <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000] h-full">
-              <div className="p-4 border-b-3 border-black bg-cyan-100">
-                <h3 className="font-bold text-black">Focus on Assignment</h3>
-                <p className="text-sm text-gray-700">Select an assignment to track your study time</p>
+            <div className="bg-white dark:bg-gray-800 border-3 border-black dark:border-gray-600 shadow-[4px_4px_0_0_#000] h-full rounded-xl">
+              <div className="p-4 border-b-3 border-black dark:border-gray-600 bg-cyan-100 dark:bg-cyan-900 rounded-t-xl">
+                <h3 className="font-bold text-black dark:text-gray-100">Focus on Assignment</h3>
+                <p className="text-sm text-gray-700 dark:text-gray-400">Select an assignment to track your study time</p>
               </div>
               <div className="p-4 max-h-64 overflow-y-auto">
                 {assignments.length === 0 ? (
-                  <p className="text-center text-gray-600 py-4 font-medium">No active assignments</p>
+                  <p className="text-center text-gray-600 dark:text-gray-400 py-4 font-medium">No active assignments</p>
                 ) : (
                   <div className="space-y-3">
                     <button
                       onClick={() => setSelectedAssignment(null)}
-                      className={`w-full text-left p-4 border-3 border-black transition-all ${
+                      className={`w-full text-left p-4 border-3 border-black dark:border-gray-600 rounded-xl transition-all ${
                         !selectedAssignment 
-                          ? 'bg-yellow-200 shadow-[4px_4px_0_0_#000]' 
-                          : 'bg-white hover:bg-gray-50 shadow-[2px_2px_0_0_#000]'
+                          ? 'bg-yellow-200 dark:bg-yellow-700 shadow-[4px_4px_0_0_#000]' 
+                          : 'bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 shadow-[2px_2px_0_0_#000]'
                       }`}
                     >
-                      <span className="font-bold text-black">General Study</span>
-                      <p className="text-sm text-gray-600">Not tracking a specific assignment</p>
+                      <span className="font-bold text-black dark:text-gray-100">General Study</span>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Not tracking a specific assignment</p>
                     </button>
                     {assignments.map(assignment => (
                       <button
                         key={assignment.id}
                         onClick={() => setSelectedAssignment(assignment)}
-                        className={`w-full text-left p-4 border-3 border-black transition-all ${
+                        className={`w-full text-left p-4 border-3 border-black dark:border-gray-600 rounded-xl transition-all ${
                           selectedAssignment?.id === assignment.id 
-                            ? 'bg-yellow-200 shadow-[4px_4px_0_0_#000]' 
-                            : 'bg-white hover:bg-gray-50 shadow-[2px_2px_0_0_#000]'
+                            ? 'bg-yellow-200 dark:bg-yellow-700 shadow-[4px_4px_0_0_#000]' 
+                            : 'bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 shadow-[2px_2px_0_0_#000]'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-black">{assignment.title}</span>
-                          <span className={`px-2 py-1 text-xs font-bold border-2 border-black ${PRIORITY_STYLES[assignment.priority as keyof typeof PRIORITY_STYLES] || 'bg-gray-200'}`}>
+                          <span className="font-bold text-black dark:text-gray-100">{assignment.title}</span>
+                          <span className={`px-2 py-1 text-xs font-bold border-2 border-black dark:border-gray-600 rounded ${PRIORITY_STYLES[assignment.priority as keyof typeof PRIORITY_STYLES] || 'bg-gray-200 dark:bg-gray-600'}`}>
                             {assignment.priority.toUpperCase()}
                           </span>
                         </div>
                         {assignment.course && (
-                          <p className="text-sm text-gray-600 font-medium">{assignment.course.name}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{assignment.course.name}</p>
                         )}
                         {assignment.due_date && (
-                          <p className="text-xs text-gray-500 mt-1 font-medium">
+                          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 font-medium">
                             Due: {formatDate(assignment.due_date)}
                           </p>
                         )}
@@ -332,22 +387,22 @@ export default function DashboardPage() {
 
       {/* AI Schedule Suggestions Banner */}
       {!hasSchedule && assignments.length > 0 && (
-        <div className="bg-violet-300 border-3 border-black shadow-[6px_6px_0_0_#000] p-6">
+        <div className="bg-violet-300 dark:bg-violet-700 border-3 border-black dark:border-gray-600 shadow-[6px_6px_0_0_#000] p-6 rounded-xl animate-fade-in-delay">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-white border-3 border-black">
-                <Sparkles className="h-6 w-6" />
+              <div className="p-3 bg-white dark:bg-gray-800 border-3 border-black dark:border-gray-600 rounded-xl">
+                <Sparkles className="h-6 w-6 text-black dark:text-gray-100" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-black">Set Up Smart Scheduling</h2>
-                <p className="text-gray-800 font-medium mt-1">
+                <h2 className="text-xl font-black text-black dark:text-white">Set Up Smart Scheduling</h2>
+                <p className="text-gray-800 dark:text-gray-300 font-medium mt-1">
                   Tell us your weekly schedule and let AI suggest the best times to work on your assignments.
                 </p>
               </div>
             </div>
             <Link
               href="/dashboard/schedule"
-              className="px-4 py-3 bg-yellow-300 font-bold border-3 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] transition-all flex items-center gap-2 shrink-0"
+              className="px-4 py-3 bg-yellow-300 dark:bg-yellow-500 font-bold border-3 border-black dark:border-gray-600 rounded-xl shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] transition-all flex items-center gap-2 shrink-0 text-black"
             >
               Set Up Schedule
               <ArrowRight className="h-4 w-4" />
@@ -358,18 +413,18 @@ export default function DashboardPage() {
 
       {/* AI Suggestions Card */}
       {hasSchedule && (suggestions.length > 0 || assignments.length > 0) && (
-        <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000] overflow-hidden">
-          <div className="px-6 py-4 bg-violet-200 border-b-3 border-black flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-white dark:bg-gray-800 border-3 border-black dark:border-gray-600 shadow-[4px_4px_0_0_#000] overflow-hidden rounded-xl animate-fade-in-delay-2">
+          <div className="px-6 py-4 bg-violet-200 dark:bg-violet-800 border-b-3 border-black dark:border-gray-600 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-t-xl">
             <div className="flex items-center gap-3">
-              <Sparkles className="h-5 w-5" />
-              <h2 className="font-black text-black">AI Study Suggestions</h2>
+              <Sparkles className="h-5 w-5 text-black dark:text-gray-100" />
+              <h2 className="font-black text-black dark:text-white">AI Study Suggestions</h2>
             </div>
             <div className="flex items-center gap-3">
               {suggestions.length === 0 && assignments.length > 0 && (
                 <button
                   onClick={generateSchedule}
                   disabled={generating}
-                  className="flex items-center gap-2 px-4 py-2 bg-yellow-300 font-bold border-3 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 bg-yellow-300 dark:bg-yellow-500 font-bold border-3 border-black dark:border-gray-600 rounded-xl shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-black"
                 >
                   {generating ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -381,7 +436,7 @@ export default function DashboardPage() {
               )}
               <Link
                 href="/dashboard/schedule?tab=suggestions"
-                className="font-bold text-black hover:underline underline-offset-4"
+                className="font-bold text-black dark:text-gray-200 hover:underline underline-offset-4"
               >
                 View all →
               </Link>
@@ -390,22 +445,22 @@ export default function DashboardPage() {
           
           {suggestions.length === 0 ? (
             <div className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 border-3 border-black flex items-center justify-center">
-                <Lightbulb className="h-8 w-8" />
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 border-3 border-black dark:border-gray-600 rounded-xl flex items-center justify-center">
+                <Lightbulb className="h-8 w-8 text-black dark:text-gray-300" />
               </div>
-              <p className="text-gray-700 font-medium">
+              <p className="text-gray-700 dark:text-gray-400 font-medium">
                 No pending suggestions. Click &ldquo;Get Suggestions&rdquo; to have AI plan your study time.
               </p>
             </div>
           ) : (
-            <div className="divide-y-3 divide-black">
+            <div className="divide-y-3 divide-black dark:divide-gray-600">
               {suggestions.map(suggestion => (
-                <div key={suggestion.id} className="p-5 flex items-center justify-between hover:bg-gray-50">
+                <div key={suggestion.id} className="p-5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                   <div className="flex-1">
-                    <p className="font-bold text-black text-lg">
+                    <p className="font-bold text-black dark:text-gray-100 text-lg">
                       {suggestion.assignment?.title || 'Study Session'}
                     </p>
-                    <p className="text-gray-700 font-medium">
+                    <p className="text-gray-700 dark:text-gray-400 font-medium">
                       {new Date(suggestion.suggested_date).toLocaleDateString('en-US', {
                         weekday: 'short',
                         month: 'short',
@@ -413,20 +468,20 @@ export default function DashboardPage() {
                       })} • {formatTime(suggestion.suggested_start)} - {formatTime(suggestion.suggested_end)}
                     </p>
                     {suggestion.reason && (
-                      <p className="text-sm text-violet-700 font-medium mt-1">{suggestion.reason}</p>
+                      <p className="text-sm text-violet-700 dark:text-violet-400 font-medium mt-1">{suggestion.reason}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-3 ml-4">
                     <button
                       onClick={() => handleSuggestionAction(suggestion.id, 'accept')}
-                      className="p-2 bg-emerald-300 border-3 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all"
+                      className="p-2 bg-emerald-300 dark:bg-emerald-500 border-3 border-black dark:border-gray-600 rounded-xl shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all"
                       title="Accept"
                     >
                       <Check className="h-5 w-5" />
                     </button>
                     <button
                       onClick={() => handleSuggestionAction(suggestion.id, 'dismiss')}
-                      className="p-2 bg-gray-200 border-3 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all"
+                      className="p-2 bg-gray-200 dark:bg-gray-600 border-3 border-black dark:border-gray-600 rounded-xl shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all"
                       title="Dismiss"
                     >
                       <X className="h-5 w-5" />
@@ -440,78 +495,78 @@ export default function DashboardPage() {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-cyan-200 p-5 border-3 border-black shadow-[4px_4px_0_0_#000]">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-delay-2">
+        <div className="bg-cyan-200 dark:bg-cyan-800 p-5 border-3 border-black dark:border-gray-600 shadow-[4px_4px_0_0_#000] rounded-xl hover:translate-y-[-2px] transition-transform">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-white border-3 border-black">
-              <ClipboardList className="h-6 w-6" />
+            <div className="p-3 bg-white dark:bg-gray-800 border-3 border-black dark:border-gray-600 rounded-xl">
+              <ClipboardList className="h-6 w-6 text-black dark:text-cyan-300" />
             </div>
             <div>
-              <p className="text-3xl font-black text-black">{stats.total}</p>
-              <p className="text-sm font-bold text-gray-700">Active</p>
+              <p className="text-3xl font-black text-black dark:text-white">{stats.total}</p>
+              <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Active</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-rose-300 p-5 border-3 border-black shadow-[4px_4px_0_0_#000]">
+        <div className="bg-rose-300 dark:bg-rose-800 p-5 border-3 border-black dark:border-gray-600 shadow-[4px_4px_0_0_#000] rounded-xl hover:translate-y-[-2px] transition-transform">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-white border-3 border-black">
-              <AlertTriangle className="h-6 w-6" />
+            <div className="p-3 bg-white dark:bg-gray-800 border-3 border-black dark:border-gray-600 rounded-xl">
+              <AlertTriangle className="h-6 w-6 text-black dark:text-rose-300" />
             </div>
             <div>
-              <p className="text-3xl font-black text-black">{stats.urgent}</p>
-              <p className="text-sm font-bold text-gray-700">Due Soon</p>
+              <p className="text-3xl font-black text-black dark:text-white">{stats.urgent}</p>
+              <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Due Soon</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-amber-200 p-5 border-3 border-black shadow-[4px_4px_0_0_#000]">
+        <div className="bg-amber-200 dark:bg-amber-800 p-5 border-3 border-black dark:border-gray-600 shadow-[4px_4px_0_0_#000] rounded-xl hover:translate-y-[-2px] transition-transform">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-white border-3 border-black">
-              <Clock className="h-6 w-6" />
+            <div className="p-3 bg-white dark:bg-gray-800 border-3 border-black dark:border-gray-600 rounded-xl">
+              <Clock className="h-6 w-6 text-black dark:text-amber-300" />
             </div>
             <div>
-              <p className="text-3xl font-black text-black">{stats.inProgress}</p>
-              <p className="text-sm font-bold text-gray-700">In Progress</p>
+              <p className="text-3xl font-black text-black dark:text-white">{stats.inProgress}</p>
+              <p className="text-sm font-bold text-gray-700 dark:text-gray-300">In Progress</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-emerald-300 p-5 border-3 border-black shadow-[4px_4px_0_0_#000]">
+        <div className="bg-emerald-300 dark:bg-emerald-800 p-5 border-3 border-black dark:border-gray-600 shadow-[4px_4px_0_0_#000] rounded-xl hover:translate-y-[-2px] transition-transform">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-white border-3 border-black">
-              <Calendar className="h-6 w-6" />
+            <div className="p-3 bg-white dark:bg-gray-800 border-3 border-black dark:border-gray-600 rounded-xl">
+              <Target className="h-6 w-6 text-black dark:text-emerald-300" />
             </div>
             <div>
-              <p className="text-3xl font-black text-black">{stats.todayTasks}</p>
-              <p className="text-sm font-bold text-gray-700">Today</p>
+              <p className="text-3xl font-black text-black dark:text-white">{completedCount}</p>
+              <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Completed</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-6 animate-fade-in-delay-3">
         {/* Upcoming Assignments */}
-        <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000]">
-          <div className="p-5 border-b-3 border-black bg-yellow-200 flex items-center justify-between">
-            <h2 className="text-lg font-black text-black">Upcoming Assignments</h2>
+        <div className="bg-white dark:bg-gray-800 border-3 border-black dark:border-gray-600 shadow-[4px_4px_0_0_#000] rounded-xl">
+          <div className="p-5 border-b-3 border-black dark:border-gray-600 bg-yellow-200 dark:bg-yellow-700 flex items-center justify-between rounded-t-xl">
+            <h2 className="text-lg font-black text-black dark:text-white">Upcoming Assignments</h2>
             <Link
               href="/dashboard/assignments"
-              className="font-bold text-black hover:underline underline-offset-4 flex items-center gap-1"
+              className="font-bold text-black dark:text-gray-200 hover:underline underline-offset-4 flex items-center gap-1"
             >
               View all <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="divide-y-3 divide-black">
+          <div className="divide-y-3 divide-black dark:divide-gray-600">
             {assignments.length === 0 ? (
               <div className="p-8 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 border-3 border-black flex items-center justify-center">
-                  <ClipboardList className="h-8 w-8" />
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 border-3 border-black dark:border-gray-600 rounded-xl flex items-center justify-center">
+                  <ClipboardList className="h-8 w-8 text-black dark:text-gray-400" />
                 </div>
-                <p className="font-medium text-gray-700">No assignments yet</p>
+                <p className="font-medium text-gray-700 dark:text-gray-400">No assignments yet</p>
                 <Link
                   href="/dashboard/assignments/new"
-                  className="inline-block mt-3 px-4 py-2 bg-yellow-300 font-bold border-3 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all"
+                  className="inline-block mt-3 px-4 py-2 bg-yellow-300 dark:bg-yellow-500 font-bold border-3 border-black dark:border-gray-600 rounded-xl shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all text-black"
                 >
                   Add your first assignment
                 </Link>
@@ -521,29 +576,29 @@ export default function DashboardPage() {
                 <Link
                   key={assignment.id}
                   href={`/dashboard/assignments/${assignment.id}`}
-                  className="block p-4 hover:bg-gray-50 transition-colors"
+                  className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-black truncate">{assignment.title}</h3>
+                      <h3 className="font-bold text-black dark:text-gray-100 truncate">{assignment.title}</h3>
                       {assignment.course && (
-                        <p className="text-sm text-gray-600 font-medium truncate">{assignment.course.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium truncate">{assignment.course.name}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`px-2 py-1 text-xs font-bold border-2 border-black ${PRIORITY_STYLES[assignment.priority as keyof typeof PRIORITY_STYLES] || 'bg-gray-200'}`}>
+                      <span className={`px-2 py-1 text-xs font-bold border-2 border-black dark:border-gray-600 rounded ${PRIORITY_STYLES[assignment.priority as keyof typeof PRIORITY_STYLES] || 'bg-gray-200 dark:bg-gray-600'}`}>
                         {assignment.priority.toUpperCase()}
                       </span>
-                      <span className={`px-2 py-1 text-xs font-bold border-2 border-black ${STATUS_STYLES[assignment.status as keyof typeof STATUS_STYLES] || 'bg-gray-200'}`}>
+                      <span className={`px-2 py-1 text-xs font-bold border-2 border-black dark:border-gray-600 rounded ${STATUS_STYLES[assignment.status as keyof typeof STATUS_STYLES] || 'bg-gray-200 dark:bg-gray-600'}`}>
                         {assignment.status.replace('_', ' ').toUpperCase()}
                       </span>
                     </div>
                   </div>
                   {assignment.due_date && (
-                    <p className="text-sm text-gray-600 mt-2 font-medium">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 font-medium">
                       Due: {formatDate(assignment.due_date)}
                       {getDaysUntilDue(assignment.due_date) <= 2 && (
-                        <span className="ml-2 text-rose-600 font-bold">
+                        <span className="ml-2 text-rose-600 dark:text-rose-400 font-bold">
                           ({getDaysUntilDue(assignment.due_date)} days left!)
                         </span>
                       )}
@@ -556,26 +611,26 @@ export default function DashboardPage() {
         </div>
 
         {/* Today's Schedule */}
-        <div className="bg-white border-3 border-black shadow-[4px_4px_0_0_#000]">
-          <div className="p-5 border-b-3 border-black bg-cyan-200 flex items-center justify-between">
-            <h2 className="text-lg font-black text-black">Today&apos;s Schedule</h2>
+        <div className="bg-white dark:bg-gray-800 border-3 border-black dark:border-gray-600 shadow-[4px_4px_0_0_#000] rounded-xl">
+          <div className="p-5 border-b-3 border-black dark:border-gray-600 bg-cyan-200 dark:bg-cyan-800 flex items-center justify-between rounded-t-xl">
+            <h2 className="text-lg font-black text-black dark:text-white">Today&apos;s Schedule</h2>
             <Link
               href="/dashboard/schedule"
-              className="font-bold text-black hover:underline underline-offset-4 flex items-center gap-1"
+              className="font-bold text-black dark:text-gray-200 hover:underline underline-offset-4 flex items-center gap-1"
             >
               View all <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="divide-y-3 divide-black">
+          <div className="divide-y-3 divide-black dark:divide-gray-600">
             {todaysTasks.length === 0 ? (
               <div className="p-8 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 border-3 border-black flex items-center justify-center">
-                  <Calendar className="h-8 w-8" />
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 border-3 border-black dark:border-gray-600 rounded-xl flex items-center justify-center">
+                  <Calendar className="h-8 w-8 text-black dark:text-gray-400" />
                 </div>
-                <p className="font-medium text-gray-700">No tasks scheduled for today</p>
+                <p className="font-medium text-gray-700 dark:text-gray-400">No tasks scheduled for today</p>
                 <Link
                   href="/dashboard/schedule"
-                  className="inline-block mt-3 px-4 py-2 bg-cyan-300 font-bold border-3 border-black shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all"
+                  className="inline-block mt-3 px-4 py-2 bg-cyan-300 dark:bg-cyan-600 font-bold border-3 border-black dark:border-gray-600 rounded-xl shadow-[3px_3px_0_0_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_0_#000] transition-all text-black dark:text-white"
                 >
                   Plan your day
                 </Link>
@@ -584,10 +639,10 @@ export default function DashboardPage() {
               todaysTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                  className="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                   onClick={() => toggleTaskComplete(task)}
                 >
-                  <div className={`p-3 border-3 border-black ${task.completed ? 'bg-emerald-300' : task.ai_generated ? 'bg-violet-200' : 'bg-gray-100'}`}>
+                  <div className={`p-3 border-3 border-black dark:border-gray-600 rounded-xl ${task.completed ? 'bg-emerald-300 dark:bg-emerald-500' : task.ai_generated ? 'bg-violet-200 dark:bg-violet-600' : 'bg-gray-100 dark:bg-gray-700'}`}>
                     {task.completed ? (
                       <CheckCircle2 className="h-5 w-5" />
                     ) : task.ai_generated ? (
@@ -597,15 +652,15 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className={`font-bold truncate ${task.completed ? 'text-gray-400 line-through' : 'text-black'}`}>
+                    <h3 className={`font-bold truncate ${task.completed ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-black dark:text-gray-100'}`}>
                       {task.assignment?.title || task.title || 'Untitled Task'}
                     </h3>
-                    <p className="text-sm text-gray-600 font-medium">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                       {formatTime(task.scheduled_start)} - {formatTime(task.scheduled_end)}
                     </p>
                   </div>
                   {task.ai_generated && !task.completed && (
-                    <span className="px-2 py-1 text-xs font-bold bg-violet-200 border-2 border-black shrink-0">
+                    <span className="px-2 py-1 text-xs font-bold bg-violet-200 dark:bg-violet-600 border-2 border-black dark:border-gray-600 rounded shrink-0 text-black dark:text-white">
                       AI
                     </span>
                   )}

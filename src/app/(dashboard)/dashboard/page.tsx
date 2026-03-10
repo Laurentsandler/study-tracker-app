@@ -276,7 +276,7 @@ export default function DashboardPage() {
               size={64}
               strokeWidth={5}
               color="#a855f7"
-              bgColor="currentColor"
+              bgColor="#d1d5db"
             >
               <span className="text-xs font-black text-black dark:text-gray-200">{completionPercent}%</span>
             </ProgressRing>

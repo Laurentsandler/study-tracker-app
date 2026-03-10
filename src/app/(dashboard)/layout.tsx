@@ -101,7 +101,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-3">
           {navItems.map((item) => {
             const active = isActive(item.href);
             return (

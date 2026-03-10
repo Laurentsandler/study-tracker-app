@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BookOpen, Camera, Calendar, Brain, Clock, Mic, ArrowRight, Sparkles, Shield, Zap, Users, Star } from 'lucide-react';
+import { BookOpen, Camera, Calendar, Brain, Clock, Mic, ArrowRight, Sparkles, RefreshCw, Zap, Users, Star } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -159,7 +159,7 @@ export default function Home() {
           {/* Feature 6 */}
           <div className="bg-white dark:bg-gray-800 p-6 border-3 border-black dark:border-gray-600 rounded-xl shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] transition-all">
             <div className="w-14 h-14 bg-sky-300 dark:bg-sky-600 border-3 border-black dark:border-gray-600 rounded-xl flex items-center justify-center mb-4">
-              <Shield className="h-7 w-7" />
+              <RefreshCw className="h-7 w-7" />
             </div>
             <h3 className="text-xl font-black text-black dark:text-white mb-2">
               Cross-Device Sync

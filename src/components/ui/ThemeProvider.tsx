@@ -23,13 +23,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem('study-tracker-theme') as Theme | null;
+    const stored = typeof window !== 'undefined'
+      ? (localStorage.getItem('study-tracker-theme') as Theme | null)
+      : null;
+
     if (stored === 'dark' || stored === 'light') {
       setTheme(stored);
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    } else if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       setTheme('dark');
     }
+    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -47,6 +50,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   };
 
+  // Avoid hydration mismatch by rendering children with default theme until mounted
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}

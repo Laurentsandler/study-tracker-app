@@ -127,6 +127,83 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to create assignment' }, { status: 500 });
     }
 
+    // Auto-add the assignment to all course members' local assignments
+    // Get all course members and the shared course name in parallel
+    const [{ data: members }, { data: sharedCourse }] = await Promise.all([
+      supabase
+        .from('shared_course_members')
+        .select('user_id')
+        .eq('shared_course_id', courseId),
+      supabase
+        .from('shared_courses')
+        .select('name')
+        .eq('id', courseId)
+        .single(),
+    ]);
+
+    if (members && members.length > 0) {
+      // Find which members already have a copy (e.g. the creator)
+      const memberIds = members.map((m) => m.user_id);
+      const { data: existingCopies } = await supabase
+        .from('user_shared_assignment_copies')
+        .select('user_id')
+        .eq('shared_assignment_id', assignment.id)
+        .in('user_id', memberIds);
+
+      const alreadyCopiedIds = new Set((existingCopies || []).map((c) => c.user_id));
+      const membersToAdd = members.filter((m) => !alreadyCopiedIds.has(m.user_id));
+
+      if (membersToAdd.length > 0) {
+        // Look up matching local courses for all members in a single query
+        let localCourseMap: Record<string, string> = {};
+        if (sharedCourse) {
+          const { data: localCourses } = await supabase
+            .from('courses')
+            .select('id, user_id')
+            .in('user_id', membersToAdd.map((m) => m.user_id))
+            .ilike('name', sharedCourse.name);
+
+          // Use the first matching course per user
+          (localCourses || []).forEach((lc) => {
+            if (!localCourseMap[lc.user_id]) {
+              localCourseMap[lc.user_id] = lc.id;
+            }
+          });
+        }
+
+        // Batch-insert local assignments for all members at once
+        const assignmentRows = membersToAdd.map((m) => ({
+          user_id: m.user_id,
+          course_id: localCourseMap[m.user_id] || null,
+          title: assignment.title,
+          description: assignment.description,
+          due_date: assignment.due_date,
+          priority: assignment.priority,
+          estimated_duration: assignment.estimated_duration,
+          raw_input_text: assignment.raw_input_text,
+          status: 'pending',
+        }));
+
+        const { data: localAssignments, error: batchError } = await supabase
+          .from('assignments')
+          .insert(assignmentRows)
+          .select('id, user_id');
+
+        if (batchError) {
+          console.error('Failed to batch-create local assignments for members:', batchError);
+        } else if (localAssignments && localAssignments.length > 0) {
+          // Track copies in batch
+          const copyRows = localAssignments.map((la) => ({
+            shared_assignment_id: assignment.id,
+            user_id: la.user_id,
+            local_assignment_id: la.id,
+          }));
+
+          await supabase.from('user_shared_assignment_copies').insert(copyRows);
+        }
+      }
+    }
+
     return NextResponse.json(assignment, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/shared-courses/[courseId]/assignments:', error);

@@ -20,6 +20,7 @@ import {
   Sun,
   Search,
   Command,
+  GraduationCap,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import Banner from '@/components/Banner';
@@ -61,6 +62,7 @@ export default function DashboardLayout({
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, color: 'bg-violet-300 dark:bg-violet-600' },
     { href: '/dashboard/assignments', label: 'Assignments', icon: ClipboardList, color: 'bg-sky-300 dark:bg-sky-600' },
     { href: '/dashboard/shared-courses', label: 'Shared Courses', icon: Users, color: 'bg-cyan-300 dark:bg-cyan-600' },
+    { href: '/dashboard/edx-courses', label: 'edX Tracker', icon: GraduationCap, color: 'bg-indigo-300 dark:bg-indigo-600' },
     { href: '/dashboard/worklogs', label: 'Work Logs', icon: FileText, color: 'bg-amber-300 dark:bg-amber-600' },
     { href: '/dashboard/study', label: 'Help Me Study', icon: Sparkles, color: 'bg-pink-300 dark:bg-pink-600' },
     { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar, color: 'bg-emerald-300 dark:bg-emerald-600' },

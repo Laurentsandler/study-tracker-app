@@ -13,6 +13,7 @@ import {
   Plus,
   ArrowRight,
   Command,
+  GraduationCap,
 } from 'lucide-react';
 
 interface CommandItem {
@@ -87,6 +88,14 @@ export default function CommandPalette() {
       icon: <Users className="h-4 w-4" />,
       action: () => router.push('/dashboard/shared-courses'),
       keywords: ['collaborate', 'group', 'team', 'class'],
+    },
+    {
+      id: 'edx-courses',
+      label: 'edX Tracker',
+      description: 'Track progress on edX courses',
+      icon: <GraduationCap className="h-4 w-4" />,
+      action: () => router.push('/dashboard/edx-courses'),
+      keywords: ['edx', 'mooc', 'online course', 'progress', 'time'],
     },
   ];
 

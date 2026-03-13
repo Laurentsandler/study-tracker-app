@@ -405,4 +405,73 @@ export async function transcribeWithGroq(audioBase64: string): Promise<string> {
   return completion.choices[0]?.message?.content || '';
 }
 
+export async function generateEdxInsights(data: {
+  courseTitle: string;
+  provider: string;
+  totalEstimatedHours: number;
+  totalLoggedMinutes: number;
+  targetEndDate: string | null;
+  recentLogs: { duration_minutes: number; section: string | null; notes: string | null; logged_at: string }[];
+}): Promise<{
+  summary: string;
+  strengths: string[];
+  suggestions: string[];
+  estimated_completion: string;
+  recommended_daily_minutes: number;
+}> {
+  const groq = getGroqClient();
+
+  const totalLoggedHours = (data.totalLoggedMinutes / 60).toFixed(1);
+  const remainingHours = Math.max(0, data.totalEstimatedHours - data.totalLoggedMinutes / 60).toFixed(1);
+  const progressPct = data.totalEstimatedHours > 0
+    ? Math.min(100, Math.round((data.totalLoggedMinutes / 60 / data.totalEstimatedHours) * 100))
+    : 0;
+
+  const recentActivity = data.recentLogs
+    .slice(0, 10)
+    .map(l => `- ${new Date(l.logged_at).toLocaleDateString()}: ${l.duration_minutes} min${l.section ? ` (${l.section})` : ''}${l.notes ? ` — ${l.notes}` : ''}`)
+    .join('\n');
+
+  const completion = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    messages: [
+      {
+        role: 'system',
+        content: `You are a learning coach helping a student track their edX course progress.
+
+${getDateContext()}
+
+OUTPUT FORMAT - Return ONLY a valid JSON object:
+{
+  "summary": "2-3 sentence overview of the student's progress",
+  "strengths": ["strength 1", "strength 2", "strength 3"],
+  "suggestions": ["actionable suggestion 1", "actionable suggestion 2", "actionable suggestion 3"],
+  "estimated_completion": "Natural language estimate like 'in about 3 weeks' or 'by March 20'",
+  "recommended_daily_minutes": 30
+}
+
+CRITICAL: Return ONLY valid JSON. No markdown, no extra text.`,
+      },
+      {
+        role: 'user',
+        content: `Course: "${data.courseTitle}" (${data.provider})
+Estimated total: ${data.totalEstimatedHours} hours
+Logged so far: ${totalLoggedHours} hours (${progressPct}% complete)
+Remaining: ${remainingHours} hours
+Target end date: ${data.targetEndDate || 'Not set'}
+
+Recent activity:
+${recentActivity || 'No activity logged yet'}
+
+Please provide personalized insights and recommendations.`,
+      },
+    ],
+    temperature: 0.6,
+    max_tokens: 1000,
+  });
+
+  const response = completion.choices[0]?.message?.content || '{}';
+  return parseJsonResponse(response);
+}
+
 export { getGroqClient };

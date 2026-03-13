@@ -353,6 +353,70 @@ export interface UserDismissedSharedAssignment {
   dismissed_at: string;
 }
 
+// =============================================
+// EDX Course Progress Tracking Types
+// =============================================
+
+export type EdxCourseStatus = 'not_started' | 'in_progress' | 'completed' | 'dropped';
+
+export interface EdxCourse {
+  id: string;
+  user_id: string;
+  title: string;
+  url: string | null;
+  provider: string;
+  category: string | null;
+  start_date: string | null;
+  target_end_date: string | null;
+  total_estimated_hours: number;
+  notes: string | null;
+  status: EdxCourseStatus;
+  created_at: string;
+  updated_at: string;
+  // Computed / joined
+  total_logged_minutes?: number;
+  progress_logs?: EdxProgressLog[];
+}
+
+export interface EdxProgressLog {
+  id: string;
+  edx_course_id: string;
+  user_id: string;
+  duration_minutes: number;
+  section: string | null;
+  notes: string | null;
+  logged_at: string;
+  created_at: string;
+}
+
+export interface EdxAiInsight {
+  summary: string;
+  strengths: string[];
+  suggestions: string[];
+  estimated_completion: string;
+  recommended_daily_minutes: number;
+}
+
+export interface CreateEdxCourseInput {
+  title: string;
+  url?: string;
+  provider?: string;
+  category?: string;
+  start_date?: string;
+  target_end_date?: string;
+  total_estimated_hours?: number;
+  notes?: string;
+  status?: EdxCourseStatus;
+}
+
+export interface CreateEdxProgressLogInput {
+  edx_course_id: string;
+  duration_minutes: number;
+  section?: string;
+  notes?: string;
+  logged_at?: string;
+}
+
 // Form types for shared courses
 export interface CreateSharedCourseInput {
   name: string;

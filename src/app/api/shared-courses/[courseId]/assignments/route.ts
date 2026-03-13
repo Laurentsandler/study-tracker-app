@@ -127,6 +127,80 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to create assignment' }, { status: 500 });
     }
 
+    // Auto-add the assignment to all course members' local assignments
+    // Get all course members
+    const { data: members } = await supabase
+      .from('shared_course_members')
+      .select('user_id')
+      .eq('shared_course_id', courseId);
+
+    if (members && members.length > 0) {
+      // Get the shared course name for local course matching
+      const { data: sharedCourse } = await supabase
+        .from('shared_courses')
+        .select('name')
+        .eq('id', courseId)
+        .single();
+
+      for (const member of members) {
+        // Skip if this member already has a copy (e.g. the creator)
+        const { data: existingCopy } = await supabase
+          .from('user_shared_assignment_copies')
+          .select('id')
+          .eq('shared_assignment_id', assignment.id)
+          .eq('user_id', member.user_id)
+          .maybeSingle();
+
+        if (existingCopy) continue;
+
+        // Try to find a matching local course by name
+        let localCourseId: string | null = null;
+        if (sharedCourse) {
+          const { data: localCourse } = await supabase
+            .from('courses')
+            .select('id')
+            .eq('user_id', member.user_id)
+            .ilike('name', sharedCourse.name)
+            .limit(1)
+            .maybeSingle();
+          localCourseId = localCourse?.id || null;
+        }
+
+        // Create local assignment for this member
+        const { data: localAssignment, error: localError } = await supabase
+          .from('assignments')
+          .insert({
+            user_id: member.user_id,
+            course_id: localCourseId,
+            title: assignment.title,
+            description: assignment.description,
+            due_date: assignment.due_date,
+            priority: assignment.priority,
+            estimated_duration: assignment.estimated_duration,
+            raw_input_text: assignment.raw_input_text,
+            status: 'pending',
+          })
+          .select('id')
+          .single();
+
+        if (localError) {
+          console.error(`Failed to auto-create assignment for member ${member.user_id}:`, localError);
+          continue;
+        }
+
+        // Track the copy so the member sees it as already copied
+        await supabase
+          .from('user_shared_assignment_copies')
+          .insert({
+            shared_assignment_id: assignment.id,
+            user_id: member.user_id,
+            local_assignment_id: localAssignment.id,
+          })
+          .select()
+          .maybeSingle();
+      }
+    }
+
     return NextResponse.json(assignment, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/shared-courses/[courseId]/assignments:', error);

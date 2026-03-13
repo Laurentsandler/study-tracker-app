@@ -114,22 +114,23 @@ export default function EdxCoursesPage() {
       if (res.ok) {
         const data = await res.json();
         setCourses(data);
-        // Refresh selected course if it's still in the list
-        if (selectedCourse) {
-          const refreshed = data.find((c: EdxCourse) => c.id === selectedCourse.id);
-          if (refreshed) setSelectedCourse(refreshed);
-        }
+        // Refresh selected course summary (total_logged_minutes) if still selected
+        setSelectedCourse((prev) => {
+          if (!prev) return prev;
+          const refreshed = data.find((c: EdxCourse) => c.id === prev.id);
+          return refreshed ? { ...prev, total_logged_minutes: refreshed.total_logged_minutes } : prev;
+        });
       }
     } catch (err) {
       console.error('Error fetching edX courses:', err);
     } finally {
       setLoading(false);
     }
-  }, [selectedCourse]);
+  }, []);
 
   useEffect(() => {
     fetchCourses();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchCourses]);
 
   const selectCourse = async (course: EdxCourse) => {
     setAiInsight(null);

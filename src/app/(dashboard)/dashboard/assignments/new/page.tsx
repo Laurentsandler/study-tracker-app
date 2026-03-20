@@ -95,10 +95,11 @@ export default function NewAssignmentPage() {
       };
 
       // Create local assignment
-      const { error: insertError } = await supabase
+      const { data: insertedAssignment, error: insertError } = await supabase
         .from('assignments')
         .insert(insertData)
-        .select();
+        .select('id')
+        .single();
 
       if (insertError) throw insertError;
 
@@ -117,6 +118,7 @@ export default function NewAssignmentPage() {
               due_date: data.due_date || null,
               priority: data.priority || 'medium',
               estimated_duration: data.estimated_duration || 60,
+              creator_local_assignment_id: insertedAssignment?.id,
             }),
           });
           

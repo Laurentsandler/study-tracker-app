@@ -85,7 +85,7 @@ export async function POST(
 
     const { courseId } = await params;
     const body = await request.json();
-    const { title, description, due_date, priority, estimated_duration, raw_input_text } = body;
+    const { title, description, due_date, priority, estimated_duration, raw_input_text, creator_local_assignment_id } = body;
 
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -151,16 +151,23 @@ export async function POST(
         .in('user_id', memberIds);
 
       const alreadyCopiedIds = new Set((existingCopies || []).map((c) => c.user_id));
-      const membersToAdd = members.filter((m) => !alreadyCopiedIds.has(m.user_id));
 
-      if (membersToAdd.length > 0) {
-        // Look up matching local courses for all members in a single query
-        let localCourseMap: Record<string, string> = {};
-        if (sharedCourse) {
+      // Exclude the creator from the batch insert — they'll be handled separately
+      // to avoid creating a duplicate when the creator already inserted their own
+      // local assignment before calling this API (e.g. from /assignments/new).
+      const membersToAdd = members.filter(
+        (m) => !alreadyCopiedIds.has(m.user_id) && m.user_id !== user.id
+      );
+
+      // Look up matching local courses for all non-creator members
+      let localCourseMap: Record<string, string> = {};
+      if (sharedCourse) {
+        const usersToLookUp = membersToAdd.map((m) => m.user_id);
+        if (usersToLookUp.length > 0) {
           const { data: localCourses } = await supabase
             .from('courses')
             .select('id, user_id')
-            .in('user_id', membersToAdd.map((m) => m.user_id))
+            .in('user_id', usersToLookUp)
             .ilike('name', sharedCourse.name);
 
           // Use the first matching course per user
@@ -170,8 +177,10 @@ export async function POST(
             }
           });
         }
+      }
 
-        // Batch-insert local assignments for all members at once
+      if (membersToAdd.length > 0) {
+        // Batch-insert local assignments for all non-creator members at once
         const assignmentRows = membersToAdd.map((m) => ({
           user_id: m.user_id,
           course_id: localCourseMap[m.user_id] || null,
@@ -200,6 +209,59 @@ export async function POST(
           }));
 
           await supabase.from('user_shared_assignment_copies').insert(copyRows);
+        }
+      }
+
+      // Handle the creator's local assignment separately.
+      // If the caller supplied a pre-existing local assignment ID (created in the
+      // UI before calling this API), register it as a copy without inserting a
+      // duplicate.  If no ID was supplied (e.g. the request came directly from
+      // /shared-courses/new-assignment), create a local assignment for the creator.
+      if (!alreadyCopiedIds.has(user.id)) {
+        let creatorLocalAssignmentId: string | null = creator_local_assignment_id ?? null;
+
+        if (!creatorLocalAssignmentId) {
+          // Determine the creator's matching personal course by name
+          let creatorCourseId: string | null = null;
+          if (sharedCourse) {
+            const { data: creatorCourses } = await supabase
+              .from('courses')
+              .select('id')
+              .eq('user_id', user.id)
+              .ilike('name', sharedCourse.name)
+              .limit(1);
+            creatorCourseId = creatorCourses?.[0]?.id || null;
+          }
+
+          const { data: creatorAssignment, error: creatorInsertError } = await supabase
+            .from('assignments')
+            .insert({
+              user_id: user.id,
+              course_id: creatorCourseId,
+              title: assignment.title,
+              description: assignment.description,
+              due_date: assignment.due_date,
+              priority: assignment.priority,
+              estimated_duration: assignment.estimated_duration,
+              raw_input_text: assignment.raw_input_text,
+              status: 'pending',
+            })
+            .select('id')
+            .single();
+
+          if (creatorInsertError) {
+            console.error('Failed to create local assignment for creator:', creatorInsertError);
+          } else {
+            creatorLocalAssignmentId = creatorAssignment?.id ?? null;
+          }
+        }
+
+        if (creatorLocalAssignmentId) {
+          await supabase.from('user_shared_assignment_copies').insert({
+            shared_assignment_id: assignment.id,
+            user_id: user.id,
+            local_assignment_id: creatorLocalAssignmentId,
+          });
         }
       }
     }

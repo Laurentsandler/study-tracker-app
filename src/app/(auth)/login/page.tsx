@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { BookOpen, Mail, Lock, AlertCircle } from 'lucide-react';
+import { AlertCircle, BookOpen, Lock, Mail } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 
 export default function LoginPage() {
@@ -34,39 +34,38 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-cyan-100 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-          <div className="p-3 bg-yellow-300 border-3 border-black shadow-[4px_4px_0_0_#000]">
-            <BookOpen className="h-8 w-8" />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4 py-8">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-16 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[100px]" />
+        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-violet-500/20 blur-[120px]" />
+      </div>
+
+      <div className="relative w-full max-w-md">
+        <Link href="/" className="mb-8 flex items-center justify-center gap-3">
+          <div className="rounded-xl border border-cyan-200/35 bg-cyan-500/20 p-3">
+            <BookOpen className="h-8 w-8 text-cyan-100" />
           </div>
-          <span className="text-3xl font-black text-black">StudyTracker</span>
+          <span className="text-3xl font-black text-white">StudyTracker</span>
         </Link>
 
-        {/* Login Card */}
-        <div className="bg-white border-3 border-black shadow-[8px_8px_0_0_#000] p-8">
-          <h1 className="text-2xl font-black text-black text-center mb-2">
-            Welcome back
-          </h1>
-          <p className="text-gray-600 font-medium text-center mb-8">
-            Log in to continue your study journey
-          </p>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
+          <h1 className="text-center text-2xl font-black text-white">Welcome back</h1>
+          <p className="mb-8 mt-2 text-center font-medium text-slate-300">Log in to continue your study journey</p>
 
           {error && (
-            <div className="mb-6 p-4 bg-rose-200 border-3 border-black flex items-center gap-3">
+            <div className="mb-6 flex items-center gap-3 rounded-xl border border-rose-300/40 bg-rose-500/15 p-4 text-rose-100">
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
-              <span className="text-sm font-bold">{error}</span>
+              <span className="text-sm font-semibold">{error}</span>
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-bold text-black mb-2">
+              <label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-200">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-600" />
+                <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                 <input
                   id="email"
                   type="email"
@@ -74,17 +73,17 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
-                  className="w-full pl-10 pr-4 py-3 border-3 border-black font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-900/85 py-3 pl-10 pr-4 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-bold text-black mb-2">
+              <label htmlFor="password" className="mb-2 block text-sm font-semibold text-slate-200">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-600" />
+                <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                 <input
                   id="password"
                   type="password"
@@ -92,17 +91,17 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full pl-10 pr-4 py-3 border-3 border-black font-medium focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-900/85 py-3 pl-10 pr-4 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
                 />
               </div>
             </div>
 
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                <input type="checkbox" className="w-4 h-4 border-2 border-black accent-yellow-300" />
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-300">
+                <input type="checkbox" className="h-4 w-4 accent-cyan-400" />
                 Remember me
               </label>
-              <Link href="/forgot-password" className="text-sm font-bold text-black hover:underline underline-offset-4">
+              <Link href="/forgot-password" className="text-sm font-semibold text-cyan-300 hover:text-cyan-200">
                 Forgot password?
               </Link>
             </div>
@@ -110,15 +109,15 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-yellow-300 font-black border-3 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#000] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full rounded-xl bg-gradient-to-r from-cyan-400 to-violet-500 py-3 font-black text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? 'Logging in...' : 'Log in'}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-gray-700 font-medium">
+          <p className="mt-6 text-center font-medium text-slate-300">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-bold text-black hover:underline underline-offset-4">
+            <Link href="/signup" className="font-bold text-cyan-300 hover:text-cyan-200">
               Sign up
             </Link>
           </p>

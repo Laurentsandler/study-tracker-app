@@ -57,9 +57,9 @@ export default function Home() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-950 text-white">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[110px] neo-orbit" />
-        <div className="absolute top-48 -left-16 h-[320px] w-[320px] rounded-full bg-violet-500/20 blur-[100px]" />
-        <div className="absolute bottom-0 right-0 h-[360px] w-[360px] rounded-full bg-blue-500/20 blur-[110px]" />
+        <div className="neo-orbit absolute -top-24 left-1/2 h-60 w-60 -translate-x-1/2 rounded-full bg-cyan-500/20 blur-3xl md:h-[420px] md:w-[420px]" />
+        <div className="absolute -left-10 top-48 h-56 w-56 rounded-full bg-violet-500/20 blur-3xl md:-left-16 md:h-80 md:w-80" />
+        <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl md:h-[360px] md:w-[360px]" />
       </div>
 
       <header className="relative border-b border-white/10 bg-slate-950/80 backdrop-blur-xl">

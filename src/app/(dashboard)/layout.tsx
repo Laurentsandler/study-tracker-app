@@ -59,13 +59,13 @@ export default function DashboardLayout({
   };
 
   const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, color: 'bg-violet-300 dark:bg-violet-600' },
-    { href: '/dashboard/assignments', label: 'Assignments', icon: ClipboardList, color: 'bg-sky-300 dark:bg-sky-600' },
-    { href: '/dashboard/shared-courses', label: 'Shared Courses', icon: Users, color: 'bg-cyan-300 dark:bg-cyan-600' },
-    { href: '/dashboard/edx-courses', label: 'edX Tracker', icon: GraduationCap, color: 'bg-indigo-300 dark:bg-indigo-600' },
-    { href: '/dashboard/worklogs', label: 'Work Logs', icon: FileText, color: 'bg-amber-300 dark:bg-amber-600' },
-    { href: '/dashboard/study', label: 'Help Me Study', icon: Sparkles, color: 'bg-pink-300 dark:bg-pink-600' },
-    { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar, color: 'bg-emerald-300 dark:bg-emerald-600' },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, color: 'from-violet-500 to-indigo-600' },
+    { href: '/dashboard/assignments', label: 'Assignments', icon: ClipboardList, color: 'from-sky-500 to-cyan-600' },
+    { href: '/dashboard/shared-courses', label: 'Shared Courses', icon: Users, color: 'from-cyan-500 to-blue-600' },
+    { href: '/dashboard/edx-courses', label: 'edX Tracker', icon: GraduationCap, color: 'from-indigo-500 to-blue-600' },
+    { href: '/dashboard/worklogs', label: 'Work Logs', icon: FileText, color: 'from-amber-500 to-orange-600' },
+    { href: '/dashboard/study', label: 'Help Me Study', icon: Sparkles, color: 'from-pink-500 to-rose-600' },
+    { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar, color: 'from-emerald-500 to-teal-600' },
   ];
 
   const isActive = (href: string) => {
@@ -74,31 +74,31 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen bg-[#f0f0f0] dark:bg-[#1a1a2e]">
+    <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       {/* Command Palette */}
       <CommandPalette />
 
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-900 border-r-4 border-black dark:border-gray-700 z-50 transform transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed top-0 left-0 z-50 h-full w-72 border-r border-white/10 bg-white/70 backdrop-blur-xl transition-transform duration-300 dark:bg-slate-900/75 lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Logo */}
-        <div className="p-6 border-b-4 border-black dark:border-gray-700 bg-violet-400 dark:bg-violet-700">
+        <div className="border-b border-white/15 bg-gradient-to-r from-sky-500 to-violet-600 p-6">
           <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="p-2 bg-white dark:bg-gray-800 border-3 border-black dark:border-gray-600 rounded-xl" style={{ boxShadow: '3px 3px 0 0 #000' }}>
-              <BookOpen className="h-6 w-6 text-black dark:text-gray-100" />
+            <div className="rounded-xl border border-white/30 bg-white/20 p-2 backdrop-blur">
+              <BookOpen className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-black text-black dark:text-white">StudyTracker</span>
+            <span className="text-xl font-black text-white">StudyTracker</span>
           </Link>
         </div>
 
@@ -110,14 +110,11 @@ export default function DashboardLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 font-bold border-3 border-black dark:border-gray-600 rounded-xl transition-all ${
+                className={`flex items-center gap-3 rounded-xl border px-4 py-3 font-semibold transition-all ${
                   active 
-                    ? `${item.color} text-black dark:text-white` 
-                    : 'bg-white dark:bg-gray-800 hover:translate-x-1 text-black dark:text-gray-200'
+                    ? `bg-gradient-to-r ${item.color} border-transparent text-white shadow-lg shadow-blue-500/25`
+                    : 'border-slate-300/80 bg-white/80 text-slate-700 hover:translate-x-1 dark:border-slate-700/80 dark:bg-slate-900/70 dark:text-slate-200'
                 }`}
-                style={{ 
-                  boxShadow: active ? '4px 4px 0 0 #000' : '3px 3px 0 0 #000',
-                }}
                 onClick={() => setSidebarOpen(false)}
               >
                 <item.icon className="h-5 w-5" />
@@ -128,12 +125,11 @@ export default function DashboardLayout({
         </nav>
 
         {/* User section */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t-4 border-black dark:border-gray-700 bg-gray-100 dark:bg-gray-900">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-white/15 bg-slate-100/80 p-4 dark:bg-slate-900/85">
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mb-3 bg-white dark:bg-gray-800 border-3 border-black dark:border-gray-600 rounded-xl font-bold text-black dark:text-gray-200 transition-all hover:translate-y-0.5"
-            style={{ boxShadow: '3px 3px 0 0 #000' }}
+            className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white/90 px-4 py-2.5 font-semibold text-slate-700 transition hover:bg-white dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900"
           >
             {theme === 'dark' ? (
               <>
@@ -148,21 +144,20 @@ export default function DashboardLayout({
             )}
           </button>
 
-          <div className="flex items-center gap-3 mb-3 p-3 bg-white dark:bg-gray-800 border-3 border-black dark:border-gray-600 rounded-xl" style={{ boxShadow: '3px 3px 0 0 #000' }}>
-            <div className="w-10 h-10 bg-amber-300 dark:bg-amber-500 border-3 border-black dark:border-gray-600 rounded-lg flex items-center justify-center font-black text-black">
+          <div className="mb-3 flex items-center gap-3 rounded-xl border border-slate-300 bg-white/90 p-3 dark:border-slate-700 dark:bg-slate-900/80">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 font-black text-slate-950">
               {user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-black dark:text-gray-100 truncate">
+              <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
                 {user?.full_name}
               </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{user?.email}</p>
+              <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-rose-300 dark:bg-rose-500 border-3 border-black dark:border-gray-600 rounded-xl font-bold text-black dark:text-white transition-all hover:translate-y-0.5"
-            style={{ boxShadow: '3px 3px 0 0 #000' }}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-4 py-3 font-semibold text-white transition hover:brightness-110"
           >
             <LogOut className="h-4 w-4" />
             <span>Log out</span>
@@ -173,34 +168,33 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className="lg:pl-72">
         {/* Top bar */}
-        <header className="bg-white dark:bg-gray-900 border-b-4 border-black dark:border-gray-700 sticky top-0 z-30">
+        <header className="sticky top-0 z-30 border-b border-white/10 bg-white/70 backdrop-blur-xl dark:bg-slate-950/75">
           <div className="flex items-center justify-between px-4 py-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 bg-violet-300 dark:bg-violet-600 border-3 border-black dark:border-gray-600 rounded-xl font-bold"
-              style={{ boxShadow: '3px 3px 0 0 #000' }}
+              className="rounded-xl border border-white/20 bg-gradient-to-r from-violet-500 to-cyan-500 p-2 font-bold text-white lg:hidden"
             >
-              <Menu className="h-6 w-6 text-black dark:text-white" />
+              <Menu className="h-6 w-6" />
             </button>
 
             {/* Search hint - desktop */}
-            <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              onClick={() => {
-                document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }));
-              }}
-            >
-              <Search className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-              <span className="text-sm text-gray-400 dark:text-gray-500 font-medium">Search...</span>
-              <kbd className="ml-8 flex items-center gap-0.5 px-2 py-0.5 text-xs font-bold bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-500 dark:text-gray-400">
-                <Command className="h-3 w-3" />K
-              </kbd>
-            </div>
+             <div className="hidden cursor-pointer items-center gap-2 rounded-xl border border-slate-300/80 bg-white/70 px-4 py-2 transition-colors hover:bg-white dark:border-slate-700 dark:bg-slate-900/80 dark:hover:bg-slate-900 lg:flex"
+               onClick={() => {
+                 document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }));
+               }}
+             >
+               <Search className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+               <span className="text-sm font-medium text-slate-400 dark:text-slate-500">Search...</span>
+               <kbd className="ml-8 flex items-center gap-0.5 rounded border border-slate-300 bg-white px-2 py-0.5 text-xs font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                 <Command className="h-3 w-3" />K
+               </kbd>
+             </div>
 
             <div className="lg:hidden flex items-center gap-2">
-              <div className="p-1.5 bg-violet-300 dark:bg-violet-600 border-2 border-black dark:border-gray-600 rounded-lg">
-                <BookOpen className="h-5 w-5 text-black dark:text-white" />
+              <div className="rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 p-1.5">
+                <BookOpen className="h-5 w-5 text-white" />
               </div>
-              <span className="font-black text-black dark:text-white">StudyTracker</span>
+              <span className="font-black text-slate-800 dark:text-white">StudyTracker</span>
             </div>
             <div className="w-8 lg:hidden" />
           </div>

@@ -57,15 +57,15 @@ export default function Banner() {
   if (!isVisible) return null;
 
   return (
-    <div className="bg-gradient-to-r from-violet-300 to-pink-300 border-b-4 border-black">
+    <div className="border-b border-white/10 bg-gradient-to-r from-cyan-500/35 via-blue-500/35 to-violet-500/35 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="p-2 bg-white border-3 border-black rounded-lg shrink-0 shadow-[2px_2px_0_0_#000]">
-              <Sparkles className="h-5 w-5 text-black" />
+            <div className="shrink-0 rounded-lg border border-cyan-200/40 bg-white/15 p-2">
+              <Sparkles className="h-5 w-5 text-cyan-100" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm sm:text-base font-bold text-black">
+              <p className="text-sm font-semibold text-white sm:text-base">
                 <span className="hidden sm:inline">Welcome to StudyTracker! </span>
                 Track your assignments, generate AI-powered study materials, and stay on top of your studies with smart scheduling.
               </p>
@@ -74,10 +74,10 @@ export default function Banner() {
           <button
             type="button"
             onClick={handleDismiss}
-            className="p-2 bg-white border-3 border-black rounded-lg hover:bg-gray-100 transition-colors shrink-0 shadow-[2px_2px_0_0_#000]"
+            className="shrink-0 rounded-lg border border-white/25 bg-white/10 p-2 text-white transition hover:bg-white/20"
             aria-label="Dismiss banner"
           >
-            <X className="h-5 w-5 text-black" />
+            <X className="h-5 w-5" />
           </button>
         </div>
       </div>
